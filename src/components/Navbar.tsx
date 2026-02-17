@@ -3,10 +3,10 @@ import { Button } from "@/components/ui/button";
 import logo from "@/assets/hireqimah-logo.png";
 import { LogOut, Menu, X } from "lucide-react";
 import { useState } from "react";
-import type { UserRole } from "@/lib/mockData";
+import type { StoredUser } from "@/lib/authStore";
 
 interface NavbarProps {
-  user?: { name: string; role: UserRole } | null;
+  user?: StoredUser | null;
   onLogout?: () => void;
 }
 
@@ -15,9 +15,8 @@ const Navbar = ({ user, onLogout }: NavbarProps) => {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const dashboardLink = user
-    ? user.role === "student" ? "/student" : user.role === "hr" ? "/hr" : "/admin"
-    : null;
+  const effectiveRole = user ? (user.role === "university" ? "admin" : user.role) : null;
+  const dashboardLink = effectiveRole ? `/${effectiveRole}` : null;
 
   return (
     <nav className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur-md">
@@ -48,7 +47,10 @@ const Navbar = ({ user, onLogout }: NavbarProps) => {
               </Button>
             </div>
           ) : (
-            <Button size="sm" onClick={() => navigate("/login")}>Sign In</Button>
+            <div className="flex items-center gap-2">
+              <Button size="sm" variant="outline" onClick={() => navigate("/login")}>Sign In</Button>
+              <Button size="sm" onClick={() => navigate("/signup")}>Sign Up</Button>
+            </div>
           )}
         </div>
 
@@ -71,7 +73,10 @@ const Navbar = ({ user, onLogout }: NavbarProps) => {
               <LogOut className="h-4 w-4 mr-2" /> Logout
             </Button>
           ) : (
-            <Button size="sm" className="w-full" onClick={() => { navigate("/login"); setMobileOpen(false); }}>Sign In</Button>
+            <div className="space-y-2">
+              <Button size="sm" variant="outline" className="w-full" onClick={() => { navigate("/login"); setMobileOpen(false); }}>Sign In</Button>
+              <Button size="sm" className="w-full" onClick={() => { navigate("/signup"); setMobileOpen(false); }}>Sign Up</Button>
+            </div>
           )}
         </div>
       )}

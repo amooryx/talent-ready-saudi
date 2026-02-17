@@ -18,21 +18,25 @@ const Index = () => {
   return (
     <div className="min-h-screen">
       {/* Hero */}
-      <section className="relative overflow-hidden hero-gradient">
-        <div className="absolute inset-0 opacity-30">
+      <section className="relative overflow-hidden min-h-[600px] flex items-center">
+        {/* Background image */}
+        <div className="absolute inset-0">
           <img src={heroBg} alt="" className="h-full w-full object-cover" />
         </div>
-        <div className="relative container py-20 md:py-32 text-center">
+        {/* Dark gradient overlay for readability */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[hsl(224,41%,10%)/0.92] via-[hsl(224,41%,16%)/0.88] to-[hsl(217,60%,20%)/0.85]" />
+
+        <div className="relative container py-20 md:py-32 text-center z-10">
           <motion.img
             src={logo}
             alt="HireQimah"
-            className="mx-auto h-20 md:h-24 mb-8"
+            className="mx-auto h-20 md:h-24 mb-8 drop-shadow-lg"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6 }}
           />
           <motion.h1
-            className="text-4xl md:text-6xl font-bold font-heading text-primary-foreground mb-4 leading-tight"
+            className="text-4xl md:text-6xl font-bold font-heading text-white mb-4 leading-tight drop-shadow-md"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.6 }}
@@ -40,7 +44,7 @@ const Index = () => {
             Saudi Arabia's <span className="text-accent">Verified Talent</span> Platform
           </motion.h1>
           <motion.p
-            className="mx-auto max-w-2xl text-lg md:text-xl text-primary-foreground/80 mb-10"
+            className="mx-auto max-w-2xl text-lg md:text-xl text-white/85 mb-10 drop-shadow-sm"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.6 }}
@@ -53,16 +57,37 @@ const Index = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
           >
-            <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold text-base px-8" onClick={() => navigate("/login?role=student")}>
+            <Button
+              size="lg"
+              className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold text-base px-8 shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5"
+              onClick={() => navigate("/signup?role=student")}
+            >
               <GraduationCap className="mr-2 h-5 w-5" /> Sign Up as Student
             </Button>
-            <Button size="lg" variant="outline" className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 font-semibold text-base px-8" onClick={() => navigate("/login?role=hr")}>
+            <Button
+              size="lg"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-base px-8 shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5"
+              onClick={() => navigate("/signup?role=hr")}
+            >
               <Building2 className="mr-2 h-5 w-5" /> Sign Up as HR
             </Button>
-            <Button size="lg" variant="outline" className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 font-semibold text-base px-8" onClick={() => navigate("/login?role=admin")}>
+            <Button
+              size="lg"
+              variant="outline"
+              className="border-2 border-white/40 text-white hover:bg-white/15 hover:border-white/60 font-semibold text-base px-8 shadow-lg transition-all hover:-translate-y-0.5"
+              onClick={() => navigate("/signup?role=university")}
+            >
               <University className="mr-2 h-5 w-5" /> Partner as University
             </Button>
           </motion.div>
+          <motion.p
+            className="mt-6 text-white/50 text-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8 }}
+          >
+            Already have an account? <button onClick={() => navigate("/login")} className="text-accent hover:underline font-medium">Sign In</button>
+          </motion.p>
         </div>
       </section>
 
@@ -107,7 +132,7 @@ const Index = () => {
                   </li>
                 ))}
               </ul>
-              <Button className="mt-6" onClick={() => navigate("/login?role=student")}>Get Started</Button>
+              <Button className="mt-6" onClick={() => navigate("/signup?role=student")}>Get Started</Button>
             </div>
             <div className="grid grid-cols-2 gap-4">
               {[
@@ -138,7 +163,7 @@ const Index = () => {
       <section id="for-companies" className="container py-20">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div className="order-2 md:order-1 grid grid-cols-3 gap-3">
-            {["Saudi Aramco", "NEOM", "STC", "Sabic", "stc pay", "Elm"].map((c, i) => (
+            {["Saudi Aramco", "NEOM", "STC", "SABIC", "Riyad Bank", "Elm"].map((c, i) => (
               <motion.div
                 key={c}
                 className="rounded-lg border bg-card p-4 text-center text-sm font-medium shadow-sm"
@@ -155,7 +180,7 @@ const Index = () => {
             <span className="text-sm font-semibold text-accent uppercase tracking-wider">For Companies</span>
             <h2 className="text-3xl font-bold font-heading mt-2 mb-4">Find Verified, Industry-Ready Talent</h2>
             <p className="text-muted-foreground mb-4">Search candidates by ERS, skills, certifications, and major. Build talent pools and get alerts when top students appear.</p>
-            <Button variant="outline" onClick={() => navigate("/login?role=hr")}>Explore Talent</Button>
+            <Button variant="outline" onClick={() => navigate("/signup?role=hr")}>Explore Talent</Button>
           </div>
         </div>
       </section>

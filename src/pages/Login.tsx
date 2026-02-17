@@ -4,28 +4,30 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
-import { GraduationCap, Building2, ShieldCheck, Eye, EyeOff } from "lucide-react";
+import { GraduationCap, Building2, ShieldCheck, Eye, EyeOff, University } from "lucide-react";
 import logo from "@/assets/hireqimah-logo.png";
-import type { UserRole } from "@/lib/mockData";
+import { login } from "@/lib/authStore";
 
-interface LoginProps {
-  onLogin: (role: UserRole) => void;
-}
+type LoginRole = "student" | "hr" | "admin" | "university";
 
-const roles: { value: UserRole; label: string; icon: typeof GraduationCap; desc: string }[] = [
+const roles: { value: LoginRole; label: string; icon: typeof GraduationCap; desc: string }[] = [
   { value: "student", label: "Student", icon: GraduationCap, desc: "Upload transcripts, track ERS & roadmap" },
   { value: "hr", label: "HR / Company", icon: Building2, desc: "Search verified candidates & analytics" },
-  { value: "admin", label: "Admin / University", icon: ShieldCheck, desc: "Manage verification & leaderboards" },
+  { value: "admin", label: "Admin", icon: ShieldCheck, desc: "Manage verification & platform" },
+  { value: "university", label: "University", icon: University, desc: "Partner & verify students" },
 ];
+
+interface LoginProps {
+  onLogin: () => void;
+}
 
 const Login = ({ onLogin }: LoginProps) => {
   const [searchParams] = useSearchParams();
-  const defaultRole = (searchParams.get("role") as UserRole) || "student";
-  const [selectedRole, setSelectedRole] = useState<UserRole>(defaultRole);
+  const defaultRole = (searchParams.get("role") as LoginRole) || "student";
+  const [selectedRole, setSelectedRole] = useState<LoginRole>(defaultRole);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [attempts, setAttempts] = useState(0);
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
@@ -33,20 +35,22 @@ const Login = ({ onLogin }: LoginProps) => {
     e.preventDefault();
     setError("");
 
-    if (attempts >= 5) {
-      setError("Too many attempts. Please try again later.");
+    const result = login(email, password);
+    if (!result.success) {
+      setError(result.error || "Login failed.");
       return;
     }
 
-    if (!email || !password) {
-      setError("Please fill in all fields.");
-      setAttempts(a => a + 1);
-      return;
+    const user = result.user!;
+    // Verify user role matches selected role (admin can access admin, university maps to admin route)
+    const effectiveRole = user.role === "university" ? "admin" : user.role;
+    if (user.role !== selectedRole && !(user.role === "university" && selectedRole === "university")) {
+      // Allow login but redirect to correct dashboard
     }
 
-    // Prototype: any non-empty credentials work
-    onLogin(selectedRole);
-    navigate(selectedRole === "student" ? "/student" : selectedRole === "hr" ? "/hr" : "/admin");
+    onLogin();
+    const dest = effectiveRole === "student" ? "/student" : effectiveRole === "hr" ? "/hr" : "/admin";
+    navigate(dest);
   };
 
   return (
@@ -64,18 +68,19 @@ const Login = ({ onLogin }: LoginProps) => {
         </div>
 
         {/* Role selector */}
-        <div className="grid grid-cols-3 gap-2 mb-6">
+        <div className="grid grid-cols-4 gap-2 mb-6">
           {roles.map(r => (
             <button
               key={r.value}
+              type="button"
               onClick={() => setSelectedRole(r.value)}
-              className={`flex flex-col items-center gap-1 rounded-lg border-2 p-3 text-xs font-medium transition-all ${
+              className={`flex flex-col items-center gap-1 rounded-lg border-2 p-2.5 text-[11px] font-medium transition-all ${
                 selectedRole === r.value
                   ? "border-primary bg-primary/5 text-primary"
                   : "border-border text-muted-foreground hover:border-primary/30"
               }`}
             >
-              <r.icon className="h-5 w-5" />
+              <r.icon className="h-4 w-4" />
               {r.label}
             </button>
           ))}
@@ -112,14 +117,22 @@ const Login = ({ onLogin }: LoginProps) => {
 
           {error && <p className="text-sm text-destructive">{error}</p>}
 
-          <Button type="submit" className="w-full" disabled={attempts >= 5}>
-            Sign In as {roles.find(r => r.value === selectedRole)?.label}
+          <Button type="submit" className="w-full">
+            Sign In
           </Button>
         </form>
 
-        <p className="mt-4 text-center text-xs text-muted-foreground">
-          Demo prototype — enter any credentials to explore.
-        </p>
+        <div className="mt-4 space-y-2 text-center text-sm">
+          <button onClick={() => navigate("/forgot-password")} className="text-primary hover:underline font-medium">
+            Forgot Password?
+          </button>
+          <p className="text-muted-foreground">
+            Don't have an account?{" "}
+            <button onClick={() => navigate(`/signup?role=${selectedRole}`)} className="text-primary hover:underline font-medium">
+              Sign Up
+            </button>
+          </p>
+        </div>
       </motion.div>
     </div>
   );

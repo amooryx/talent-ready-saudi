@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -6,41 +6,76 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import ERSGauge from "@/components/ERSGauge";
 import StatCard from "@/components/StatCard";
-import { students, opportunities, roadmapItems, universities, majors } from "@/lib/mockData";
+import { opportunities, roadmapItems } from "@/lib/mockData";
+import { type StoredUser, getStudents, calculateERS, updateUser, validateFile, UNIVERSITIES, MAJORS } from "@/lib/authStore";
 import {
-  Trophy, Target, Briefcase, Map, Bell, Upload, GraduationCap, Award,
-  TrendingUp, Star, CheckCircle, Circle, ArrowUp, Filter
+  Trophy, Target, Briefcase, Map, Bell, Upload, Award,
+  TrendingUp, Star, CheckCircle, Circle, Filter
 } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 
-const me = students[0];
+interface StudentDashboardProps {
+  user: StoredUser;
+}
 
-const StudentDashboard = () => {
+const StudentDashboard = ({ user }: StudentDashboardProps) => {
+  const { toast } = useToast();
   const [leaderFilter, setLeaderFilter] = useState<"global" | "university" | "major">("global");
   const [notifications] = useState([
-    { id: 1, text: "🎉 You moved up to #1 on the Cybersecurity leaderboard!", time: "2h ago" },
-    { id: 2, text: "📋 New opportunity: Cybersecurity Intern at Saudi Aramco", time: "1d ago" },
-    { id: 3, text: "🏆 You earned the 'Top 1%' badge!", time: "3d ago" },
+    { id: 1, text: "📋 Upload your transcript to activate ERS scoring", time: "Now" },
+    { id: 2, text: "🎯 Complete your profile to appear on leaderboards", time: "Now" },
+    { id: 3, text: "🏆 New opportunities matching your major posted!", time: "1d ago" },
   ]);
 
-  const filteredStudents = leaderFilter === "university"
-    ? students.filter(s => s.university === me.university)
-    : leaderFilter === "major"
-      ? students.filter(s => s.major === me.major)
-      : students;
+  const ers = calculateERS(user);
+  const allStudents = getStudents();
 
-  const sorted = [...filteredStudents].sort((a, b) => b.ers - a.ers);
+  const filteredStudents = leaderFilter === "university"
+    ? allStudents.filter(s => s.university === user.university)
+    : leaderFilter === "major"
+      ? allStudents.filter(s => s.major === user.major)
+      : allStudents;
+
+  const sorted = [...filteredStudents]
+    .map(s => ({ ...s, ers: calculateERS(s) }))
+    .sort((a, b) => b.ers - a.ers);
+
+  const myRank = sorted.findIndex(s => s.id === user.id) + 1;
+
+  const handleFileUpload = useCallback((type: "transcript" | "certificate") => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".pdf,.png,.jpg,.jpeg";
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      const validation = validateFile(file);
+      if (!validation.valid) {
+        toast({ title: "Upload Rejected", description: validation.error, variant: "destructive" });
+        return;
+      }
+      if (type === "transcript") {
+        updateUser(user.id, { transcriptUploaded: true });
+        toast({ title: "Transcript Uploaded", description: "Pending admin verification." });
+      } else {
+        toast({ title: "Certificate Uploaded", description: "Pending verification." });
+      }
+    };
+    input.click();
+  }, [user.id, toast]);
 
   return (
     <div className="container py-6 space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold font-heading">Welcome, {me.name}</h1>
-          <p className="text-muted-foreground text-sm">{me.university} · {me.major} · GPA {me.gpa}</p>
+          <h1 className="text-2xl font-bold font-heading">Welcome, {user.name}</h1>
+          <p className="text-muted-foreground text-sm">
+            {user.university || "No university"} · {user.major || "No major"} · GPA {user.gpa || "N/A"}
+          </p>
         </div>
         <div className="flex gap-2">
-          {me.badges.map(b => (
+          {(user.badges || []).map(b => (
             <Badge key={b} className="bg-accent/20 text-accent-foreground border-accent/30">
               <Star className="h-3 w-3 mr-1" />{b}
             </Badge>
@@ -50,11 +85,22 @@ const StudentDashboard = () => {
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={Target} label="ERS Score" value={me.ers} trend="+3 this month" delay={0} />
-        <StatCard icon={Trophy} label="Global Rank" value="#1" trend="Up 2 positions" delay={0.1} />
-        <StatCard icon={Award} label="Certifications" value={me.certifications.length} delay={0.2} />
-        <StatCard icon={Map} label="Roadmap" value={`${me.roadmapProgress}%`} delay={0.3} />
+        <StatCard icon={Target} label="ERS Score" value={ers} delay={0} />
+        <StatCard icon={Trophy} label="Rank" value={myRank > 0 ? `#${myRank}` : "—"} delay={0.1} />
+        <StatCard icon={Award} label="Certifications" value={(user.certifications || []).length} delay={0.2} />
+        <StatCard icon={Map} label="Roadmap" value={`${user.roadmapProgress || 0}%`} delay={0.3} />
       </div>
+
+      {!user.transcriptVerified && (
+        <div className="rounded-lg border-2 border-accent/40 bg-accent/5 p-4 flex items-center gap-3">
+          <Upload className="h-5 w-5 text-accent shrink-0" />
+          <div className="flex-1">
+            <p className="font-medium text-sm">Transcript not verified</p>
+            <p className="text-xs text-muted-foreground">Upload your transcript to activate ERS scoring and appear on leaderboards.</p>
+          </div>
+          <Button size="sm" onClick={() => handleFileUpload("transcript")}>Upload</Button>
+        </div>
+      )}
 
       <Tabs defaultValue="ers" className="space-y-4">
         <TabsList className="grid w-full grid-cols-5">
@@ -69,8 +115,9 @@ const StudentDashboard = () => {
         <TabsContent value="ers">
           <div className="grid md:grid-cols-3 gap-6">
             <motion.div className="md:col-span-1 rounded-xl border bg-card p-6 flex flex-col items-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              <ERSGauge score={me.ers} size={180} />
-              <p className="mt-2 text-sm text-muted-foreground">Top {100 - me.ers < 10 ? (100 - me.ers) : Math.round((1 - me.ers / 100) * 100)}% of all students</p>
+              <ERSGauge score={ers} size={180} />
+              {ers > 0 && <p className="mt-2 text-sm text-muted-foreground">Top {Math.max(1, Math.round((1 - (myRank - 1) / Math.max(1, allStudents.length)) * 100))}% of students</p>}
+              {ers === 0 && <p className="mt-2 text-sm text-muted-foreground">Complete your profile to get your ERS</p>}
             </motion.div>
             <div className="md:col-span-2 space-y-4">
               <div className="rounded-xl border bg-card p-6">
@@ -78,9 +125,9 @@ const StudentDashboard = () => {
                 <p className="text-xs text-muted-foreground mb-1">ERS = (50% Academic) + (30% Skills & Certs) + (20% Soft Skills & Projects)</p>
                 <div className="space-y-4 mt-4">
                   {[
-                    { label: "Academic Score", value: me.academicScore, weight: "50%" },
-                    { label: "Skills & Certifications", value: me.skillsScore, weight: "30%" },
-                    { label: "Soft Skills & Projects", value: me.softSkillsScore, weight: "20%" },
+                    { label: "Academic Score", value: user.academicScore || 0, weight: "50%" },
+                    { label: "Skills & Certifications", value: user.skillsScore || 0, weight: "30%" },
+                    { label: "Soft Skills & Projects", value: user.softSkillsScore || 0, weight: "20%" },
                   ].map(item => (
                     <div key={item.label}>
                       <div className="flex justify-between text-sm mb-1">
@@ -94,19 +141,26 @@ const StudentDashboard = () => {
               </div>
               <div className="rounded-xl border bg-card p-6">
                 <h3 className="font-semibold font-heading mb-3">Certifications</h3>
-                <div className="flex flex-wrap gap-2">
-                  {me.certifications.map(c => (
-                    <Badge key={c} variant="secondary"><Award className="h-3 w-3 mr-1" />{c}</Badge>
-                  ))}
-                </div>
+                {(user.certifications || []).length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {(user.certifications || []).map(c => (
+                      <Badge key={c.name} variant="secondary" className={c.verified ? "" : "opacity-60"}>
+                        <Award className="h-3 w-3 mr-1" />{c.name}
+                        {c.verified && <CheckCircle className="h-3 w-3 ml-1 text-success" />}
+                      </Badge>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No certifications added yet.</p>
+                )}
               </div>
               <div className="rounded-xl border bg-card p-6">
                 <h3 className="font-semibold font-heading mb-3">Upload Documents</h3>
                 <div className="grid sm:grid-cols-2 gap-3">
-                  <Button variant="outline" className="h-20 border-dashed">
+                  <Button variant="outline" className="h-20 border-dashed" onClick={() => handleFileUpload("transcript")}>
                     <Upload className="h-5 w-5 mr-2" /> Upload Transcript (PDF)
                   </Button>
-                  <Button variant="outline" className="h-20 border-dashed">
+                  <Button variant="outline" className="h-20 border-dashed" onClick={() => handleFileUpload("certificate")}>
                     <Upload className="h-5 w-5 mr-2" /> Upload Certificate
                   </Button>
                 </div>
@@ -133,7 +187,7 @@ const StudentDashboard = () => {
               {sorted.map((s, i) => (
                 <motion.div
                   key={s.id}
-                  className={`flex items-center gap-4 rounded-lg p-3 ${s.id === me.id ? "bg-primary/5 border border-primary/20" : "hover:bg-muted/50"}`}
+                  className={`flex items-center gap-4 rounded-lg p-3 ${s.id === user.id ? "bg-primary/5 border border-primary/20" : "hover:bg-muted/50"}`}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.05 }}
@@ -142,7 +196,7 @@ const StudentDashboard = () => {
                     {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i + 1}`}
                   </span>
                   <div className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary text-secondary-foreground text-sm font-bold">
-                    {s.avatar}
+                    {s.avatar || "?"}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-sm truncate">{s.name}</p>
@@ -153,12 +207,13 @@ const StudentDashboard = () => {
                     <p className="text-xs text-muted-foreground">ERS</p>
                   </div>
                   <div className="flex gap-1">
-                    {s.badges.slice(0, 2).map(b => (
+                    {(s.badges || []).slice(0, 2).map(b => (
                       <Badge key={b} variant="secondary" className="text-[10px] px-1.5">{b}</Badge>
                     ))}
                   </div>
                 </motion.div>
               ))}
+              {sorted.length === 0 && <p className="text-sm text-muted-foreground text-center py-8">No students found for this filter.</p>}
             </div>
           </div>
         </TabsContent>
@@ -168,7 +223,7 @@ const StudentDashboard = () => {
           <div className="grid md:grid-cols-3 gap-6">
             <div className="md:col-span-2 rounded-xl border bg-card p-6">
               <h3 className="text-lg font-semibold font-heading mb-1">Your Career Roadmap</h3>
-              <p className="text-sm text-muted-foreground mb-4">AI-recommended based on your ERS, skills, and Cybersecurity job market.</p>
+              <p className="text-sm text-muted-foreground mb-4">AI-recommended based on your ERS, skills, and {user.major || "your"} job market.</p>
               <div className="space-y-3">
                 {roadmapItems.map((item, i) => (
                   <motion.div
@@ -200,12 +255,12 @@ const StudentDashboard = () => {
             <div className="space-y-4">
               <div className="rounded-xl border bg-card p-6">
                 <h4 className="font-semibold font-heading mb-3">Progress</h4>
-                <ERSGauge score={me.roadmapProgress} size={120} label="Completion" />
+                <ERSGauge score={user.roadmapProgress || 0} size={120} label="Completion" />
                 <p className="text-sm text-muted-foreground text-center mt-2">{roadmapItems.filter(r => r.completed).length}/{roadmapItems.length} completed</p>
               </div>
               <div className="rounded-xl border bg-card p-6">
                 <h4 className="font-semibold font-heading mb-3">AI Recommendation</h4>
-                <p className="text-sm text-muted-foreground">Focus on <strong>AWS Security Specialty</strong> next — high demand in Saudi market (+23% YoY growth in cloud security roles).</p>
+                <p className="text-sm text-muted-foreground">Focus on <strong>building your profile</strong> — upload transcript and certifications to boost your ERS score.</p>
               </div>
             </div>
           </div>

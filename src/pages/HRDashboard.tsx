@@ -6,18 +6,24 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import StatCard from "@/components/StatCard";
-import { students, universities, majors, companies } from "@/lib/mockData";
-import { Search, Users, BarChart3, Bell, Filter, Star, Award, Eye, TrendingUp, Building2 } from "lucide-react";
+import { type StoredUser, getStudents, calculateERS, UNIVERSITIES, MAJORS } from "@/lib/authStore";
+import { Search, Users, BarChart3, Bell, Star, Award, Eye, TrendingUp } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-const HRDashboard = () => {
+interface HRDashboardProps {
+  user: StoredUser;
+}
+
+const HRDashboard = ({ user }: HRDashboardProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [minERS, setMinERS] = useState("");
   const [filterMajor, setFilterMajor] = useState("all");
   const [filterUni, setFilterUni] = useState("all");
 
+  const students = getStudents().map(s => ({ ...s, ers: calculateERS(s) }));
+
   const filtered = students.filter(s => {
-    if (searchQuery && !s.name.toLowerCase().includes(searchQuery.toLowerCase()) && !s.certifications.some(c => c.toLowerCase().includes(searchQuery.toLowerCase()))) return false;
+    if (searchQuery && !s.name.toLowerCase().includes(searchQuery.toLowerCase()) && !(s.certifications || []).some(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()))) return false;
     if (minERS && s.ers < parseInt(minERS)) return false;
     if (filterMajor !== "all" && s.major !== filterMajor) return false;
     if (filterUni !== "all" && s.university !== filterUni) return false;
@@ -34,13 +40,13 @@ const HRDashboard = () => {
     <div className="container py-6 space-y-6">
       <div>
         <h1 className="text-2xl font-bold font-heading">HR Dashboard</h1>
-        <p className="text-muted-foreground text-sm">Find and evaluate verified Saudi talent</p>
+        <p className="text-muted-foreground text-sm">Welcome, {user.name} — {user.company || "Company"}</p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard icon={Users} label="Total Candidates" value={students.length} delay={0} />
-        <StatCard icon={TrendingUp} label="Avg ERS" value={Math.round(students.reduce((a, s) => a + s.ers, 0) / students.length)} delay={0.1} />
-        <StatCard icon={Award} label="Certified" value={students.filter(s => s.certifications.length > 0).length} delay={0.2} />
+        <StatCard icon={TrendingUp} label="Avg ERS" value={students.length > 0 ? Math.round(students.reduce((a, s) => a + s.ers, 0) / students.length) : 0} delay={0.1} />
+        <StatCard icon={Award} label="Certified" value={students.filter(s => (s.certifications || []).length > 0).length} delay={0.2} />
         <StatCard icon={Star} label="Top Talent (ERS>85)" value={students.filter(s => s.ers > 85).length} delay={0.3} />
       </div>
 
@@ -63,14 +69,14 @@ const HRDashboard = () => {
                 <SelectTrigger><SelectValue placeholder="Major" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Majors</SelectItem>
-                  {majors.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                  {MAJORS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
                 </SelectContent>
               </Select>
               <Select value={filterUni} onValueChange={setFilterUni}>
                 <SelectTrigger><SelectValue placeholder="University" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Universities</SelectItem>
-                  {universities.map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}
+                  {UNIVERSITIES.map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -87,16 +93,16 @@ const HRDashboard = () => {
                   transition={{ delay: i * 0.04 }}
                 >
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary text-secondary-foreground font-bold shrink-0">
-                    {s.avatar}
+                    {s.avatar || "?"}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-medium text-sm">{s.name}</span>
-                      {s.badges.map(b => <Badge key={b} className="text-[10px] bg-accent/20 text-accent-foreground border-accent/30">{b}</Badge>)}
+                      {(s.badges || []).map(b => <Badge key={b} className="text-[10px] bg-accent/20 text-accent-foreground border-accent/30">{b}</Badge>)}
                     </div>
                     <p className="text-xs text-muted-foreground">{s.university} · {s.major} · GPA {s.gpa}</p>
                     <div className="flex gap-1 mt-1 flex-wrap">
-                      {s.certifications.map(c => <Badge key={c} variant="outline" className="text-[10px]">{c}</Badge>)}
+                      {(s.certifications || []).map(c => <Badge key={c.name} variant="outline" className="text-[10px]">{c.name}</Badge>)}
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
@@ -105,13 +111,14 @@ const HRDashboard = () => {
                       <p className="text-[10px] text-muted-foreground">ERS</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-sm font-semibold">{s.roadmapProgress}%</p>
+                      <p className="text-sm font-semibold">{s.roadmapProgress || 0}%</p>
                       <p className="text-[10px] text-muted-foreground">Roadmap</p>
                     </div>
                     <Button size="sm" variant="outline"><Eye className="h-4 w-4 mr-1" />View</Button>
                   </div>
                 </motion.div>
               ))}
+              {filtered.length === 0 && <p className="text-sm text-muted-foreground text-center py-8">No candidates match your filters.</p>}
             </div>
           </div>
         </TabsContent>
@@ -121,7 +128,7 @@ const HRDashboard = () => {
             <div className="rounded-xl border bg-card p-6">
               <h3 className="font-semibold font-heading mb-4">Top In-Demand Skills</h3>
               <div className="space-y-3">
-                {topSkills.map((s, i) => (
+                {topSkills.map(s => (
                   <div key={s.skill}>
                     <div className="flex justify-between text-sm mb-1">
                       <span>{s.skill}</span>
@@ -135,8 +142,9 @@ const HRDashboard = () => {
             <div className="rounded-xl border bg-card p-6">
               <h3 className="font-semibold font-heading mb-4">Top Universities by ERS</h3>
               <div className="space-y-3">
-                {universities.map(u => {
+                {UNIVERSITIES.map(u => {
                   const uStudents = students.filter(s => s.university === u);
+                  if (uStudents.length === 0) return null;
                   const avgErs = Math.round(uStudents.reduce((a, s) => a + s.ers, 0) / uStudents.length);
                   return (
                     <div key={u} className="flex items-center justify-between rounded-lg border p-3">
@@ -156,7 +164,7 @@ const HRDashboard = () => {
             <div className="md:col-span-2 rounded-xl border bg-card p-6">
               <h3 className="font-semibold font-heading mb-4">Industry-Ready Candidates by Major</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {majors.map(m => {
+                {MAJORS.slice(0, 4).map(m => {
                   const mStudents = students.filter(s => s.major === m);
                   const ready = mStudents.filter(s => s.ers >= 80).length;
                   return (
@@ -176,19 +184,16 @@ const HRDashboard = () => {
           <div className="rounded-xl border bg-card p-6">
             <h3 className="text-lg font-semibold font-heading mb-4">Talent Alerts</h3>
             <div className="space-y-3">
-              {[
-                { text: "Ahmed Al-Farsi reached ERS 92 — Top 1% in Cybersecurity", time: "2h ago" },
-                { text: "3 new students matched your Cybersecurity talent pool criteria", time: "1d ago" },
-                { text: "Sara Al-Mutairi completed AWS Solutions Architect certification", time: "3d ago" },
-              ].map((a, i) => (
+              {students.filter(s => s.ers >= 85).slice(0, 3).map((s, i) => (
                 <div key={i} className="flex items-start gap-3 rounded-lg border p-4">
                   <Bell className="h-5 w-5 text-accent mt-0.5 shrink-0" />
                   <div>
-                    <p className="text-sm">{a.text}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{a.time}</p>
+                    <p className="text-sm">{s.name} has ERS {s.ers} — Top talent in {s.major}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{s.university}</p>
                   </div>
                 </div>
               ))}
+              {students.filter(s => s.ers >= 85).length === 0 && <p className="text-sm text-muted-foreground text-center py-8">No top talent alerts yet.</p>}
             </div>
           </div>
         </TabsContent>
