@@ -49,10 +49,6 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        gold: {
-          DEFAULT: "hsl(var(--gold))",
-          foreground: "hsl(var(--gold-foreground))",
-        },
         navy: {
           DEFAULT: "hsl(var(--navy))",
           foreground: "hsl(var(--navy-foreground))",
