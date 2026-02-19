@@ -397,7 +397,7 @@ function recordAttempt(email: string, success: boolean) {
 }
 
 // ===== LOGIN =====
-export function login(email: string, password: string): { success: boolean; error?: string; user?: StoredUser } {
+export function login(email: string, password: string, expectedRole?: string): { success: boolean; error?: string; user?: StoredUser } {
   email = email.trim().toLowerCase();
   if (!email || !password) return { success: false, error: "Please fill in all fields." };
   if (email.length > 255 || password.length > 128) return { success: false, error: "Invalid input." };
@@ -410,6 +410,11 @@ export function login(email: string, password: string): { success: boolean; erro
   if (!user) { recordAttempt(email, false); return { success: false, error: `Invalid credentials. ${rateCheck.remainingAttempts - 1} attempts remaining.` }; }
   if (user.disabled) return { success: false, error: "This account has been disabled. Contact admin." };
   if (!verifyHash(password, user.passwordHash)) { recordAttempt(email, false); return { success: false, error: `Invalid credentials. ${rateCheck.remainingAttempts - 1} attempts remaining.` }; }
+
+  // Strict role validation - prevent cross-role login
+  if (expectedRole && user.role !== expectedRole) {
+    return { success: false, error: "Invalid credentials for this login portal." };
+  }
 
   recordAttempt(email, true);
   const session: Session = { userId: user.id, role: user.role, loginAt: Date.now(), expiresAt: Date.now() + SESSION_TIMEOUT, csrfToken: generateCSRF() };

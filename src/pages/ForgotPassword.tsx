@@ -40,7 +40,7 @@ const ForgotPassword = () => {
               <CheckCircle className="h-8 w-8 text-success" />
             </div>
             <p className="text-sm text-muted-foreground">In a production system, a password reset link would be sent to <strong>{email}</strong>.</p>
-            <Button onClick={() => navigate("/login")} className="w-full">Back to Sign In</Button>
+            <Button onClick={() => navigate("/login/student")} className="w-full">Back to Sign In</Button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -52,7 +52,7 @@ const ForgotPassword = () => {
             <Button type="submit" className="w-full">
               <Mail className="h-4 w-4 mr-2" /> Send Reset Link
             </Button>
-            <button type="button" onClick={() => navigate("/login")} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary mx-auto">
+            <button type="button" onClick={() => navigate("/login/student")} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary mx-auto">
               <ArrowLeft className="h-4 w-4" /> Back to Sign In
             </button>
           </form>
