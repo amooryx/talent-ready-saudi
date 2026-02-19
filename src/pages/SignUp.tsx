@@ -40,6 +40,16 @@ const SignUp = () => {
     const { name, email, password, confirmPassword } = form;
     if (!name || !email || !password) { setError("Please fill in all required fields."); return; }
     if (password !== confirmPassword) { setError("Passwords do not match."); return; }
+    
+    // University email restriction for students
+    if (role === "student") {
+      const blockedDomains = ["gmail.com", "yahoo.com", "outlook.com", "hotmail.com", "live.com", "icloud.com", "aol.com", "mail.com", "protonmail.com"];
+      const emailDomain = email.split("@")[1]?.toLowerCase() || "";
+      if (blockedDomains.includes(emailDomain) || !emailDomain.endsWith(".edu.sa")) {
+        setError("Please use your official university email address (e.g., name@ksu.edu.sa)."); return;
+      }
+    }
+    
     if (role === "student" && (!form.university || !form.major)) { setError("Please select your university and major."); return; }
     if (role === "student" && !form.gpaScale) { setError("Please select your GPA scale."); return; }
     if (role === "hr" && !form.company) { setError("Please enter your company name."); return; }
@@ -114,7 +124,7 @@ const SignUp = () => {
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <div><Label>Full Name *</Label><Input placeholder="Your full name" value={form.name || ""} onChange={e => set("name", e.target.value)} maxLength={100} /></div>
-          <div><Label>Email *</Label><Input type="email" placeholder="you@example.com" value={form.email || ""} onChange={e => set("email", e.target.value)} maxLength={255} /></div>
+          <div><Label>Email *{role === "student" ? " (University email only)" : ""}</Label><Input type="email" placeholder={role === "student" ? "name@university.edu.sa" : "you@example.com"} value={form.email || ""} onChange={e => set("email", e.target.value)} maxLength={255} /></div>
 
           {role === "student" && (
             <>
