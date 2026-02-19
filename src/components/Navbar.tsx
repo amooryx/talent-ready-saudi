@@ -18,6 +18,29 @@ const Navbar = ({ user, onLogout }: NavbarProps) => {
   const effectiveRole = user ? (user.role === "university" ? "admin" : user.role) : null;
   const dashboardLink = effectiveRole ? `/${effectiveRole}` : null;
 
+  // Use absolute links with hash for anchor navigation from any page
+  const anchorLinks = [
+    { label: "Home", href: "/" },
+    { label: "Features", href: "/#features" },
+    { label: "For Students", href: "/#for-students" },
+    { label: "For Companies", href: "/#for-companies" },
+  ];
+
+  const handleAnchorClick = (href: string) => {
+    setMobileOpen(false);
+    if (href === "/") {
+      navigate("/");
+      return;
+    }
+    const [path, hash] = href.split("#");
+    if (location.pathname !== path) {
+      navigate(href);
+    } else if (hash) {
+      const el = document.getElementById(hash);
+      if (el) el.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
     <nav className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur-md">
       <div className="container flex h-16 items-center justify-between">
@@ -27,14 +50,17 @@ const Navbar = ({ user, onLogout }: NavbarProps) => {
 
         {/* Desktop */}
         <div className="hidden md:flex items-center gap-6">
-          {!user && (
-            <>
-              <Link to="/" className={`text-sm font-medium transition-colors hover:text-primary ${location.pathname === "/" ? "text-primary" : "text-muted-foreground"}`}>Home</Link>
-              <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Features</a>
-              <a href="#for-students" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">For Students</a>
-              <a href="#for-companies" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">For Companies</a>
-            </>
-          )}
+          {!user && anchorLinks.map(link => (
+            <button
+              key={link.href}
+              onClick={() => handleAnchorClick(link.href)}
+              className={`text-sm font-medium transition-colors hover:text-primary ${
+                location.pathname === "/" && link.href === "/" ? "text-primary" : "text-muted-foreground"
+              }`}
+            >
+              {link.label}
+            </button>
+          ))}
           {dashboardLink && (
             <Link to={dashboardLink} className="text-sm font-medium text-primary">Dashboard</Link>
           )}
@@ -48,7 +74,7 @@ const Navbar = ({ user, onLogout }: NavbarProps) => {
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <Button size="sm" variant="outline" onClick={() => navigate("/login")}>Sign In</Button>
+              <Button size="sm" variant="outline" onClick={() => navigate("/login/student")}>Sign In</Button>
               <Button size="sm" onClick={() => navigate("/signup")}>Sign Up</Button>
             </div>
           )}
@@ -62,19 +88,18 @@ const Navbar = ({ user, onLogout }: NavbarProps) => {
 
       {mobileOpen && (
         <div className="md:hidden border-t bg-card p-4 space-y-3">
-          {!user && (
-            <>
-              <Link to="/" className="block text-sm font-medium" onClick={() => setMobileOpen(false)}>Home</Link>
-              <a href="#features" className="block text-sm text-muted-foreground" onClick={() => setMobileOpen(false)}>Features</a>
-            </>
-          )}
+          {!user && anchorLinks.map(link => (
+            <button key={link.href} onClick={() => handleAnchorClick(link.href)} className="block text-sm font-medium text-muted-foreground hover:text-primary">
+              {link.label}
+            </button>
+          ))}
           {user ? (
             <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => { onLogout?.(); setMobileOpen(false); }}>
               <LogOut className="h-4 w-4 mr-2" /> Logout
             </Button>
           ) : (
             <div className="space-y-2">
-              <Button size="sm" variant="outline" className="w-full" onClick={() => { navigate("/login"); setMobileOpen(false); }}>Sign In</Button>
+              <Button size="sm" variant="outline" className="w-full" onClick={() => { navigate("/login/student"); setMobileOpen(false); }}>Sign In</Button>
               <Button size="sm" className="w-full" onClick={() => { navigate("/signup"); setMobileOpen(false); }}>Sign Up</Button>
             </div>
           )}

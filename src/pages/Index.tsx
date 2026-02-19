@@ -58,7 +58,7 @@ const Index = () => {
                 </Button>
               </motion.div>
               <motion.p className="mt-5 text-white/50 text-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }}>
-                Already have an account? <button onClick={() => navigate("/login")} className="text-[hsl(207,89%,80%)] hover:underline font-medium">Sign In</button>
+                Already have an account? <button onClick={() => navigate("/login/student")} className="text-[hsl(207,89%,80%)] hover:underline font-medium">Sign In</button>
               </motion.p>
             </div>
             <motion.div className="hidden md:grid grid-cols-2 gap-3" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4, duration: 0.7 }}>

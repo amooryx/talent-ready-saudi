@@ -95,7 +95,7 @@ const SignUp = () => {
           </div>
           <h2 className="text-xl font-bold font-heading mb-2">Account Created!</h2>
           <p className="text-sm text-muted-foreground mb-6">You can now sign in with your credentials.</p>
-          <Button onClick={() => navigate("/login")} className="w-full">Go to Sign In</Button>
+          <Button onClick={() => navigate("/login/student")} className="w-full">Go to Sign In</Button>
         </motion.div>
       </div>
     );
@@ -198,7 +198,7 @@ const SignUp = () => {
         </form>
 
         <p className="mt-4 text-center text-sm text-muted-foreground">
-          Already have an account? <button onClick={() => navigate("/login")} className="text-primary hover:underline font-medium">Sign In</button>
+          Already have an account? <button onClick={() => navigate("/login/student")} className="text-primary hover:underline font-medium">Sign In</button>
         </p>
       </motion.div>
     </div>
