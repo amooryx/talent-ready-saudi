@@ -8,6 +8,7 @@ import Navbar from "@/components/Navbar";
 import Index from "./pages/Index";
 import RoleLogin from "./pages/RoleLogin";
 import SignUp from "./pages/SignUp";
+import RoleSelect from "./pages/RoleSelect";
 import ForgotPassword from "./pages/ForgotPassword";
 import StudentDashboard from "./pages/StudentDashboard";
 import HRDashboard from "./pages/HRDashboard";
@@ -77,8 +78,11 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Index />} />
 
-            {/* Legacy /login redirects to student login */}
-            <Route path="/login" element={user ? <Navigate to={`/${effectiveRole}`} /> : <Navigate to="/login/student" />} />
+            {/* Role selection */}
+            <Route path="/auth/select-role" element={user ? <Navigate to={`/${effectiveRole}`} /> : <RoleSelect />} />
+
+            {/* Legacy /login redirects to role selection */}
+            <Route path="/login" element={user ? <Navigate to={`/${effectiveRole}`} /> : <Navigate to="/auth/select-role?mode=signin" />} />
 
             {/* Role-specific login routes */}
             <Route path="/login/student" element={user ? <Navigate to={`/${effectiveRole}`} /> : <RoleLogin role="student" onLogin={handleLogin} />} />

@@ -74,8 +74,8 @@ const Navbar = ({ user, onLogout }: NavbarProps) => {
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <Button size="sm" variant="outline" onClick={() => navigate("/login/student")}>Sign In</Button>
-              <Button size="sm" onClick={() => navigate("/signup")}>Sign Up</Button>
+              <Button size="sm" variant="outline" onClick={() => navigate("/auth/select-role?mode=signin")}>Sign In</Button>
+              <Button size="sm" onClick={() => navigate("/auth/select-role?mode=signup")}>Sign Up</Button>
             </div>
           )}
         </div>
@@ -99,8 +99,8 @@ const Navbar = ({ user, onLogout }: NavbarProps) => {
             </Button>
           ) : (
             <div className="space-y-2">
-              <Button size="sm" variant="outline" className="w-full" onClick={() => { navigate("/login/student"); setMobileOpen(false); }}>Sign In</Button>
-              <Button size="sm" className="w-full" onClick={() => { navigate("/signup"); setMobileOpen(false); }}>Sign Up</Button>
+              <Button size="sm" variant="outline" className="w-full" onClick={() => { navigate("/auth/select-role?mode=signin"); setMobileOpen(false); }}>Sign In</Button>
+              <Button size="sm" className="w-full" onClick={() => { navigate("/auth/select-role?mode=signup"); setMobileOpen(false); }}>Sign Up</Button>
             </div>
           )}
         </div>
