@@ -14,16 +14,378 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string
+          details: Json | null
+          id: string
+          ip_address: string | null
+          resource_id: string | null
+          resource_type: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          resource_id?: string | null
+          resource_type?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          resource_id?: string | null
+          resource_type?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      certification_catalog: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          weight: number
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          weight?: number
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          weight?: number
+        }
+        Relationships: []
+      }
+      hr_profiles: {
+        Row: {
+          company_name: string
+          created_at: string
+          id: string
+          industry: string | null
+          position: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_name: string
+          created_at?: string
+          id?: string
+          industry?: string | null
+          position?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_name?: string
+          created_at?: string
+          id?: string
+          industry?: string | null
+          position?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      hr_shortlists: {
+        Row: {
+          created_at: string
+          hr_user_id: string
+          id: string
+          notes: string | null
+          student_user_id: string
+        }
+        Insert: {
+          created_at?: string
+          hr_user_id: string
+          id?: string
+          notes?: string | null
+          student_user_id: string
+        }
+        Update: {
+          created_at?: string
+          hr_user_id?: string
+          id?: string
+          notes?: string | null
+          student_user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          nationality: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          nationality?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          nationality?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      student_certifications: {
+        Row: {
+          certification_id: string | null
+          custom_name: string | null
+          file_path: string | null
+          id: string
+          uploaded_at: string
+          user_id: string
+          verified: boolean | null
+        }
+        Insert: {
+          certification_id?: string | null
+          custom_name?: string | null
+          file_path?: string | null
+          id?: string
+          uploaded_at?: string
+          user_id: string
+          verified?: boolean | null
+        }
+        Update: {
+          certification_id?: string | null
+          custom_name?: string | null
+          file_path?: string | null
+          id?: string
+          uploaded_at?: string
+          user_id?: string
+          verified?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_certifications_certification_id_fkey"
+            columns: ["certification_id"]
+            isOneToOne: false
+            referencedRelation: "certification_catalog"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_profiles: {
+        Row: {
+          academic_score: number | null
+          certification_score: number | null
+          conduct_score: number | null
+          created_at: string
+          engagement_points: number | null
+          ers_score: number | null
+          gpa: number | null
+          gpa_scale: Database["public"]["Enums"]["gpa_scale"]
+          id: string
+          major: string
+          national_rank: number | null
+          project_score: number | null
+          soft_skills_score: number | null
+          target_role: string | null
+          university: string
+          university_rank: number | null
+          updated_at: string
+          user_id: string
+          visibility_public: boolean | null
+        }
+        Insert: {
+          academic_score?: number | null
+          certification_score?: number | null
+          conduct_score?: number | null
+          created_at?: string
+          engagement_points?: number | null
+          ers_score?: number | null
+          gpa?: number | null
+          gpa_scale?: Database["public"]["Enums"]["gpa_scale"]
+          id?: string
+          major: string
+          national_rank?: number | null
+          project_score?: number | null
+          soft_skills_score?: number | null
+          target_role?: string | null
+          university: string
+          university_rank?: number | null
+          updated_at?: string
+          user_id: string
+          visibility_public?: boolean | null
+        }
+        Update: {
+          academic_score?: number | null
+          certification_score?: number | null
+          conduct_score?: number | null
+          created_at?: string
+          engagement_points?: number | null
+          ers_score?: number | null
+          gpa?: number | null
+          gpa_scale?: Database["public"]["Enums"]["gpa_scale"]
+          id?: string
+          major?: string
+          national_rank?: number | null
+          project_score?: number | null
+          soft_skills_score?: number | null
+          target_role?: string | null
+          university?: string
+          university_rank?: number | null
+          updated_at?: string
+          user_id?: string
+          visibility_public?: boolean | null
+        }
+        Relationships: []
+      }
+      student_projects: {
+        Row: {
+          created_at: string
+          description: string | null
+          file_path: string | null
+          id: string
+          title: string
+          user_id: string
+          verified: boolean | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          file_path?: string | null
+          id?: string
+          title: string
+          user_id: string
+          verified?: boolean | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          file_path?: string | null
+          id?: string
+          title?: string
+          user_id?: string
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
+      transcript_uploads: {
+        Row: {
+          created_at: string
+          file_path: string
+          id: string
+          parsed_at: string | null
+          parsed_data: Json | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_path: string
+          id?: string
+          parsed_at?: string | null
+          parsed_data?: Json | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          file_path?: string
+          id?: string
+          parsed_at?: string | null
+          parsed_data?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      university_profiles: {
+        Row: {
+          admin_contact: string | null
+          created_at: string
+          id: string
+          official_domain: string | null
+          university_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_contact?: string | null
+          created_at?: string
+          id?: string
+          official_domain?: string | null
+          university_name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_contact?: string | null
+          created_at?: string
+          id?: string
+          official_domain?: string | null
+          university_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "student" | "hr" | "university" | "admin"
+      gpa_scale: "4" | "5"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +512,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["student", "hr", "university", "admin"],
+      gpa_scale: ["4", "5"],
+    },
   },
 } as const
