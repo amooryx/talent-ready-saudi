@@ -1,12 +1,12 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import logo from "@/assets/hireqimah-logo.png";
-import { LogOut, Menu, X } from "lucide-react";
+import { LogOut, Menu, X, LayoutDashboard } from "lucide-react";
 import { useState } from "react";
-import type { StoredUser } from "@/lib/authStore";
+import type { AuthUser } from "@/lib/supabaseAuth";
 
 interface NavbarProps {
-  user?: StoredUser | null;
+  user?: AuthUser | null;
   onLogout?: () => void;
 }
 
@@ -18,7 +18,6 @@ const Navbar = ({ user, onLogout }: NavbarProps) => {
   const effectiveRole = user ? (user.role === "university" ? "admin" : user.role) : null;
   const dashboardLink = effectiveRole ? `/${effectiveRole}` : null;
 
-  // Use absolute links with hash for anchor navigation from any page
   const anchorLinks = [
     { label: "Home", href: "/" },
     { label: "Features", href: "/#features" },
@@ -50,7 +49,7 @@ const Navbar = ({ user, onLogout }: NavbarProps) => {
 
         {/* Desktop */}
         <div className="hidden md:flex items-center gap-6">
-          {!user && anchorLinks.map(link => (
+          {anchorLinks.map(link => (
             <button
               key={link.href}
               onClick={() => handleAnchorClick(link.href)}
@@ -61,12 +60,14 @@ const Navbar = ({ user, onLogout }: NavbarProps) => {
               {link.label}
             </button>
           ))}
-          {dashboardLink && (
-            <Link to={dashboardLink} className="text-sm font-medium text-primary">Dashboard</Link>
-          )}
           {user ? (
             <div className="flex items-center gap-3">
-              <span className="text-sm text-muted-foreground">{user.name}</span>
+              {dashboardLink && (
+                <Button size="sm" variant="outline" onClick={() => navigate(dashboardLink)}>
+                  <LayoutDashboard className="h-4 w-4 mr-1" /> Dashboard
+                </Button>
+              )}
+              <span className="text-sm text-muted-foreground">{user.full_name}</span>
               <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary capitalize">{user.role}</span>
               <Button variant="ghost" size="sm" onClick={onLogout}>
                 <LogOut className="h-4 w-4" />
@@ -88,15 +89,22 @@ const Navbar = ({ user, onLogout }: NavbarProps) => {
 
       {mobileOpen && (
         <div className="md:hidden border-t bg-card p-4 space-y-3">
-          {!user && anchorLinks.map(link => (
+          {anchorLinks.map(link => (
             <button key={link.href} onClick={() => handleAnchorClick(link.href)} className="block text-sm font-medium text-muted-foreground hover:text-primary">
               {link.label}
             </button>
           ))}
           {user ? (
-            <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => { onLogout?.(); setMobileOpen(false); }}>
-              <LogOut className="h-4 w-4 mr-2" /> Logout
-            </Button>
+            <>
+              {dashboardLink && (
+                <Button size="sm" variant="outline" className="w-full" onClick={() => { navigate(dashboardLink); setMobileOpen(false); }}>
+                  <LayoutDashboard className="h-4 w-4 mr-2" /> Dashboard
+                </Button>
+              )}
+              <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => { onLogout?.(); setMobileOpen(false); }}>
+                <LogOut className="h-4 w-4 mr-2" /> Logout
+              </Button>
+            </>
           ) : (
             <div className="space-y-2">
               <Button size="sm" variant="outline" className="w-full" onClick={() => { navigate("/auth/select-role?mode=signin"); setMobileOpen(false); }}>Sign In</Button>

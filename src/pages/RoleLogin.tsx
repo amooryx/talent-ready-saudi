@@ -6,15 +6,15 @@ import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
 import { GraduationCap, Building2, University, ShieldCheck, Eye, EyeOff } from "lucide-react";
 import logo from "@/assets/hireqimah-logo.png";
-import { login } from "@/lib/authStore";
+import { signIn, getDashboardPath, type AppRole } from "@/lib/supabaseAuth";
 
 type LoginRole = "student" | "hr" | "university" | "admin";
 
-const roleMeta: Record<LoginRole, { label: string; icon: typeof GraduationCap; desc: string; dashPath: string }> = {
-  student: { label: "Student", icon: GraduationCap, desc: "Access your ERS, roadmap & opportunities", dashPath: "/student" },
-  hr: { label: "HR / Company", icon: Building2, desc: "Search verified candidates & manage opportunities", dashPath: "/hr" },
-  university: { label: "University", icon: University, desc: "Manage student verification & records", dashPath: "/admin" },
-  admin: { label: "Platform Admin", icon: ShieldCheck, desc: "Manage verification & platform settings", dashPath: "/admin" },
+const roleMeta: Record<LoginRole, { label: string; icon: typeof GraduationCap; desc: string }> = {
+  student: { label: "Student", icon: GraduationCap, desc: "Access your ERS, roadmap & opportunities" },
+  hr: { label: "HR / Company", icon: Building2, desc: "Search verified candidates & manage opportunities" },
+  university: { label: "University", icon: University, desc: "Manage student verification & records" },
+  admin: { label: "Platform Admin", icon: ShieldCheck, desc: "Manage verification & platform settings" },
 };
 
 interface RoleLoginProps {
@@ -27,22 +27,36 @@ const RoleLogin = ({ role, onLogin }: RoleLoginProps) => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const meta = roleMeta[role];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setLoading(true);
 
-    const result = login(email, password, role);
+    const result = await signIn(email, password);
+    setLoading(false);
+
     if (!result.success) {
       setError(result.error || "Login failed.");
       return;
     }
 
+    // Verify role matches
+    const userRole = result.user.role as AppRole;
+    const effectiveRole = userRole === "university" ? "admin" : userRole;
+    const expectedRole = role === "university" ? "admin" : role;
+    
+    if (effectiveRole !== expectedRole && role !== "admin") {
+      setError(`This account is registered as ${userRole}. Please use the correct login portal.`);
+      return;
+    }
+
     onLogin();
-    navigate(meta.dashPath);
+    navigate(getDashboardPath(userRole));
   };
 
   const otherLinks: Record<LoginRole, { label: string; path: string }[]> = {
@@ -109,8 +123,8 @@ const RoleLogin = ({ role, onLogin }: RoleLoginProps) => {
 
           {error && <p className="text-sm text-destructive">{error}</p>}
 
-          <Button type="submit" className="w-full">
-            Sign In as {meta.label}
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? "Signing in..." : `Sign In as ${meta.label}`}
           </Button>
         </form>
 

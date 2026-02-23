@@ -46,20 +46,20 @@ const Index = () => {
               className="text-base md:text-lg text-white/90 mb-4 leading-relaxed max-w-xl"
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.6 }}
             >
-              HireQimah is a structured employment readiness platform connecting students, universities, and employers through measurable performance signals, verified academic inputs, and transparent ERS scoring aligned with Saudi Arabia's Vision 2030 and workforce transformation goals.
+              HireQimah is a secure, structured employment readiness infrastructure connecting students, universities, and employers through measurable ERS scoring, verified academic intelligence, real-time market demand alignment, and transparent performance signals aligned with Saudi Arabia's Vision 2030 workforce transformation.
             </motion.p>
             <motion.p
               className="text-sm text-white/60 mb-8 leading-relaxed max-w-xl italic"
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4, duration: 0.6 }}
             >
-              Standardized readiness scoring · Verified academic inputs · Institutional integration pathway · Long-term workforce alignment
+              Standardized readiness scoring · Verified academic inputs · Real-time market intelligence · National leaderboard system
             </motion.p>
             <motion.div className="flex flex-wrap gap-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
               <Button size="lg" className={`bg-primary text-primary-foreground hover:bg-primary/90 ${ctaBtnClass}`} onClick={() => navigate("/auth/select-role?mode=signup")}>
                 <GraduationCap className="mr-2 h-5 w-5" /> Sign Up as Student
               </Button>
-              <Button size="lg" className={`bg-secondary text-secondary-foreground hover:bg-secondary/90 ${ctaBtnClass}`} onClick={() => navigate("/auth/select-role?mode=signin")}>
-                <Building2 className="mr-2 h-5 w-5" /> Sign In as HR
+              <Button size="lg" className={`bg-secondary text-secondary-foreground hover:bg-secondary/90 ${ctaBtnClass}`} onClick={() => navigate("/signup?role=hr")}>
+                <Building2 className="mr-2 h-5 w-5" /> Sign Up as HR
               </Button>
               <Button size="lg" className={`bg-secondary text-secondary-foreground hover:bg-secondary/90 ${ctaBtnClass}`} onClick={() => navigate("/signup?role=university")}>
                 <University className="mr-2 h-5 w-5" /> Register as University
@@ -177,14 +177,16 @@ const Index = () => {
               <p className="text-sm text-muted-foreground mb-4">Build your Qimah. Compete. Get hired.</p>
               <ul className="space-y-2 mb-4">
                 {[
-                  "Earn Qimah points through certifications, projects, and activities",
-                  "Improve your Employment Readiness Score (ERS)",
-                  "Track CO-OP and internship readiness",
-                  "Build a verified professional profile",
-                  "Receive a personalized career roadmap based on Saudi market demand",
-                  "Compete on leaderboards: per major, per university, and nationally",
-                  "Upload verified transcript (not manual GPA entry)",
-                  "Get matched with HR and apply with one click",
+                  "Real-time ERS score with full transparency",
+                  "University-based & national leaderboard ranking",
+                  "Market-aligned readiness % for target roles",
+                  "Job-role targeting engine with skill gap detection",
+                  "AI transcript analysis & certification roadmap generator",
+                  "Competitive gamified point system — earn, climb, increase your Qimah",
+                  "Top 100 latest Saudi job market insights per role",
+                  "Personalized roadmap (Pentester / SOC / DevOps / etc.)",
+                  "Certification weight transparency & recruiter visibility controls",
+                  "CO-OP & internship readiness tracking",
                 ].map((item, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
                     <Star className="h-4 w-4 text-primary mt-0.5 shrink-0" />
@@ -192,6 +194,11 @@ const Index = () => {
                   </li>
                 ))}
               </ul>
+
+              <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 mb-4">
+                <h4 className="font-semibold text-sm text-primary mb-1">🏆 Compete & Rise</h4>
+                <p className="text-xs text-muted-foreground">Compete within your university and nationally. Earn points. Climb the leaderboard. Increase your Qimah.</p>
+              </div>
 
               {/* Dashboard Features */}
               <div className="space-y-3 mb-4">
@@ -240,16 +247,16 @@ const Index = () => {
               <p className="text-sm text-muted-foreground mb-4">Access structured, verified Saudi talent through ERS scoring.</p>
               <ul className="space-y-2 mb-4">
                 {[
-                  "Access verified, pre-ranked Saudi talent",
-                  "View full ERS breakdown: academics, certifications, projects, soft skills, conduct",
-                  "Filter candidates by ERS, major, university, certifications",
-                  "See verified academic transcripts",
-                  "Access conduct & attendance records from partner universities",
-                  "View certification difficulty weight for each credential",
-                  "Track candidate roadmap progress",
-                  "Build and save talent pools",
-                  "Shortlist and contact instantly",
+                  "Search verified students by ERS score ranges",
+                  "Filter by certification, major, and readiness for specific roles",
+                  "View job-role alignment % and consistency scores",
+                  "Access verified transcript intelligence",
+                  "View engagement & reliability indicators",
+                  "Request candidate interviews through platform",
+                  "Build shortlists and save talent pools",
+                  "Access Top 100 talent per category",
                   "CO-OP eligibility badge for ready students",
+                  "Structured evaluation templates",
                 ].map((item, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
                     <CheckCircle className="h-4 w-4 text-primary mt-0.5 shrink-0" />
@@ -275,7 +282,7 @@ const Index = () => {
               </div>
 
               <p className="text-xs text-muted-foreground mb-4 italic">Enterprise access and institutional licensing follow structured onboarding agreements.</p>
-              <Button variant="outline" className="w-full" onClick={() => navigate("/auth/select-role?mode=signin")}>Sign In as HR <ArrowRight className="ml-2 h-4 w-4" /></Button>
+              <Button variant="outline" className="w-full" onClick={() => navigate("/signup?role=hr")}>Sign Up as HR <ArrowRight className="ml-2 h-4 w-4" /></Button>
             </motion.div>
 
             {/* Universities */}
@@ -287,14 +294,14 @@ const Index = () => {
               <p className="text-sm text-muted-foreground mb-4">Institutional integration for structured readiness tracking.</p>
               <ul className="space-y-2 mb-4">
                 {[
-                  "Monitor student engagement and participation",
-                  "Upload and track conduct & attendance records",
-                  "Record positive contributions: events, mentoring, competitions",
-                  "Record negative violations and disciplinary actions",
-                  "Oversee CO-OP eligibility for students",
-                  "Transparent assessment dashboard",
-                  "Contribute to ERS governance framework",
-                  "Real-time institutional insights",
+                  "Cohort readiness analytics & engagement heatmaps",
+                  "Dropout risk flags & curriculum gap intelligence",
+                  "Certification adoption trends across programs",
+                  "National university comparison (aggregated, anonymized)",
+                  "Performance benchmarking & institutional ranking insights",
+                  "Academic integrity monitoring",
+                  "Retention metrics & employment alignment",
+                  "Upload conduct, attendance & engagement records",
                 ].map((item, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
                     <CheckCircle className="h-4 w-4 text-primary mt-0.5 shrink-0" />
@@ -516,99 +523,29 @@ const Index = () => {
         </div>
       </section>
 
-      {/* ───────── DEVELOPMENT STATUS ───────── */}
-      <section className="bg-accent/50 py-16">
-        <div className="container">
-          <motion.div className="rounded-xl border bg-card p-8 md:p-10 text-center shadow-sm" {...fadeUp}>
-            <div className="flex justify-center mb-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                <Rocket className="h-6 w-6 text-primary" />
-              </div>
-            </div>
-            <h2 className="text-2xl font-bold font-heading mb-3">Development Status</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto mb-4">
-              HireQimah is currently in its early-stage development phase. The platform is being actively refined to support future institutional and corporate integrations aligned with Vision 2030 and Saudization priorities.
-            </p>
-            <p className="text-sm text-muted-foreground max-w-xl mx-auto">
-              No official university partnerships or corporate integrations are active at this time. If you're interested in exploring institutional collaboration, we welcome the conversation.
-            </p>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ───────── 5. ROADMAP ───────── */}
-      <section className="py-20">
+      {/* ───────── PLATFORM CAPABILITIES ───────── */}
+      <section className="bg-accent/50 py-20">
         <div className="container">
           <div className="text-center mb-14">
-            <h2 className="text-3xl md:text-4xl font-bold font-heading mb-3">Our Vision Roadmap</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">From early-stage development to national infrastructure — three phases to transform Saudi talent readiness.</p>
+            <h2 className="text-3xl md:text-4xl font-bold font-heading mb-3">Platform Capabilities</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">A fully deployed, production-grade infrastructure powering every stage of the employment readiness lifecycle.</p>
           </div>
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
-              {
-                phase: "Phase 1",
-                title: "Foundation",
-                status: "Current",
-                icon: Rocket,
-                items: [
-                  "Core ERS scoring engine",
-                  "Student, HR, and University dashboards",
-                  "Certification point system",
-                  "Basic matching & opportunity browsing",
-                  "Platform refinement & scoring validation",
-                  "Controlled early-user onboarding",
-                ],
-              },
-              {
-                phase: "Phase 2",
-                title: "Pilot",
-                status: "Upcoming",
-                icon: Eye,
-                items: [
-                  "First university partnerships & data integration",
-                  "Initial HR onboarding and opportunity postings",
-                  "Verified transcript integration",
-                  "Attendance & conduct data pipelines",
-                  "Student premium features",
-                ],
-              },
-              {
-                phase: "Phase 3",
-                title: "National Scale",
-                status: "Vision",
-                icon: Globe,
-                items: [
-                  "Multi-university network",
-                  "Enterprise HR subscriptions",
-                  "AI-powered career roadmaps",
-                  "Government & HRDF integration",
-                  "Skill Gap Analytics",
-                  "Certification ROI modeling",
-                  "CO-OP probability scoring",
-                  "National Readiness Benchmark Index",
-                  "Institutional performance dashboards",
-                ],
-              },
-            ].map((p, i) => (
-              <motion.div key={p.phase} className="rounded-xl border bg-card p-6 shadow-sm relative" {...fadeUp} transition={{ delay: i * 0.12, duration: 0.5 }}>
-                <span className={`absolute top-4 right-4 text-xs font-semibold px-2.5 py-1 rounded-full ${
-                  p.status === "Current" ? "bg-primary/10 text-primary" : p.status === "Upcoming" ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"
-                }`}>
-                  {p.status}
-                </span>
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 mb-4">
-                  <p.icon className="h-5 w-5 text-primary" />
-                </div>
-                <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-1">{p.phase}</p>
-                <h3 className="text-lg font-bold font-heading mb-3">{p.title}</h3>
-                <ul className="space-y-2">
-                  {p.items.map(item => (
-                    <li key={item} className="text-sm text-muted-foreground flex items-start gap-2">
-                      <CheckCircle className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
+              { icon: Target, title: "ERS Scoring Engine", desc: "Multi-dimensional Employment Readiness Score combining academics, certifications, projects, soft skills, and conduct." },
+              { icon: Brain, title: "AI Transcript Intelligence", desc: "Automated transcript parsing, GPA extraction, course mapping, and skill matrix alignment." },
+              { icon: TrendingUp, title: "Market Demand Intelligence", desc: "Real-time Saudi job market analysis with role-specific certification requirements and skill gap detection." },
+              { icon: Trophy, title: "National Leaderboards", desc: "University-level, major-specific, and national rankings with gamified point systems and achievement badges." },
+              { icon: PieChart, title: "Institutional Analytics", desc: "Cohort readiness dashboards, engagement heatmaps, dropout risk signals, and curriculum gap analysis." },
+              { icon: Search, title: "Skill Gap Detection", desc: "Automated comparison of student profiles against market demand to generate personalized improvement roadmaps." },
+              { icon: LineChart, title: "Certification ROI Modeling", desc: "Measuring real employment impact of certifications on hiring outcomes and ERS improvement trajectories." },
+              { icon: Gauge, title: "CO-OP Probability Index", desc: "Predictive scoring for placement likelihood based on ERS, major alignment, and employer requirements." },
+              { icon: Globe, title: "National Readiness Benchmark", desc: "Standardized index measuring employment readiness across Saudi institutions for workforce planning." },
+            ].map((item, i) => (
+              <motion.div key={item.title} className="rounded-xl border bg-card p-6 shadow-sm" {...fadeUp} transition={{ delay: i * 0.06, duration: 0.5 }}>
+                <item.icon className="h-7 w-7 text-primary mb-3" />
+                <h3 className="font-semibold font-heading mb-2">{item.title}</h3>
+                <p className="text-sm text-muted-foreground">{item.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -634,8 +571,8 @@ const Index = () => {
               <Building2 className="h-10 w-10 text-primary mx-auto mb-4" />
               <h3 className="text-lg font-bold font-heading mb-2">HR & Companies</h3>
               <p className="text-sm text-muted-foreground mb-6">Access structured, verified Saudi talent through ERS scoring.</p>
-              <Button variant="outline" className="w-full" onClick={() => navigate("/auth/select-role?mode=signin")}>
-                Sign In as HR <ArrowRight className="ml-2 h-4 w-4" />
+              <Button variant="outline" className="w-full" onClick={() => navigate("/signup?role=hr")}>
+                Sign Up as HR <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </motion.div>
             <motion.div className="rounded-xl border bg-card p-8 text-center shadow-sm" {...fadeUp} transition={{ delay: 0.2 }}>

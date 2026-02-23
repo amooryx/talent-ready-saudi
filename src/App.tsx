@@ -4,12 +4,14 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Index from "./pages/Index";
 import RoleLogin from "./pages/RoleLogin";
 import SignUp from "./pages/SignUp";
 import RoleSelect from "./pages/RoleSelect";
 import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import StudentDashboard from "./pages/StudentDashboard";
 import HRDashboard from "./pages/HRDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -18,7 +20,7 @@ import NotFound from "./pages/NotFound";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Contact from "./pages/Contact";
-import { getSession, getCurrentUser, logout, refreshSession, type StoredUser } from "@/lib/authStore";
+import { getCurrentAuthUser, signOut, type AuthUser, type AppRole } from "@/lib/supabaseAuth";
 
 const queryClient = new QueryClient();
 
@@ -39,31 +41,39 @@ const ScrollToHash = () => {
 };
 
 const App = () => {
-  const [user, setUser] = useState<StoredUser | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [checked, setChecked] = useState(false);
 
-  const checkSession = useCallback(() => {
-    const session = getSession();
-    if (session) {
-      const u = getCurrentUser();
-      setUser(u);
-      refreshSession();
-    } else {
-      setUser(null);
-    }
+  const loadUser = useCallback(async () => {
+    const authUser = await getCurrentAuthUser();
+    setUser(authUser);
     setChecked(true);
   }, []);
 
   useEffect(() => {
-    checkSession();
-    const interval = setInterval(checkSession, 60000);
-    return () => clearInterval(interval);
-  }, [checkSession]);
+    // Set up auth listener BEFORE getting session
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        // Defer to avoid Supabase client deadlock
+        setTimeout(() => loadUser(), 0);
+      } else {
+        setUser(null);
+        setChecked(true);
+      }
+    });
 
-  const handleLogin = () => { checkSession(); };
-  const handleLogout = () => { logout(); setUser(null); };
+    loadUser();
 
-  const effectiveRole = user ? (user.role === "university" ? "admin" : user.role) : null;
+    return () => subscription.unsubscribe();
+  }, [loadUser]);
+
+  const handleLogin = () => loadUser();
+  const handleLogout = async () => {
+    await signOut();
+    setUser(null);
+  };
+
+  const effectiveRole: AppRole | null = user ? (user.role === "university" ? "admin" : user.role) : null;
 
   if (!checked) return null;
 
@@ -76,13 +86,14 @@ const App = () => {
           <ScrollToHash />
           <Navbar user={user} onLogout={handleLogout} />
           <Routes>
+            {/* Homepage always accessible, even when logged in */}
             <Route path="/" element={<Index />} />
 
             {/* Role selection */}
-            <Route path="/auth/select-role" element={user ? <Navigate to={`/${effectiveRole}`} /> : <RoleSelect />} />
+            <Route path="/auth/select-role" element={<RoleSelect />} />
 
             {/* Legacy /login redirects to role selection */}
-            <Route path="/login" element={user ? <Navigate to={`/${effectiveRole}`} /> : <Navigate to="/auth/select-role?mode=signin" />} />
+            <Route path="/login" element={<Navigate to="/auth/select-role?mode=signin" />} />
 
             {/* Role-specific login routes */}
             <Route path="/login/student" element={user ? <Navigate to={`/${effectiveRole}`} /> : <RoleLogin role="student" onLogin={handleLogin} />} />
@@ -92,8 +103,10 @@ const App = () => {
             {/* Admin separate route */}
             <Route path="/admin/login" element={user ? <Navigate to={`/${effectiveRole}`} /> : <RoleLogin role="admin" onLogin={handleLogin} />} />
 
-            <Route path="/signup" element={user ? <Navigate to={`/${effectiveRole}`} /> : <SignUp />} />
+            {/* Sign up — always accessible, handles logged-in modal internally */}
+            <Route path="/signup" element={<SignUp currentUser={user} onLogout={handleLogout} />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
 
             {/* Protected dashboards with strict role checks */}
             <Route path="/student" element={effectiveRole === "student" ? <StudentDashboard user={user!} /> : user ? <AccessDenied /> : <Navigate to="/login/student" />} />
