@@ -5,10 +5,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { motion } from "framer-motion";
-import { GraduationCap, Building2, University, Eye, EyeOff } from "lucide-react";
+import { GraduationCap, Building2, University, Eye, EyeOff, LogOut } from "lucide-react";
 import logo from "@/assets/hireqimah-logo.png";
-import { registerUser, UNIVERSITIES, getMajorsForUniversity } from "@/lib/authStore";
-import type { UserRole } from "@/lib/mockData";
+import { signUp, validatePassword, type AppRole, type AuthUser } from "@/lib/supabaseAuth";
+import { UNIVERSITIES, getMajorsForUniversity } from "@/lib/authStore";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 type SignUpRole = "student" | "hr" | "university";
 
@@ -18,14 +26,21 @@ const roleMeta: Record<SignUpRole, { label: string; icon: typeof GraduationCap; 
   university: { label: "University", icon: University, desc: "Partner & manage student verification" },
 };
 
-const SignUp = () => {
+interface SignUpProps {
+  currentUser?: AuthUser | null;
+  onLogout?: () => void;
+}
+
+const SignUp = ({ currentUser, onLogout }: SignUpProps) => {
   const [searchParams] = useSearchParams();
   const defaultRole = (searchParams.get("role") as SignUpRole) || "student";
-  const [role, setRole] = useState<SignUpRole>(defaultRole);
+  const [role] = useState<SignUpRole>(defaultRole);
   const [form, setForm] = useState<Record<string, string>>({});
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(!!currentUser);
   const navigate = useNavigate();
 
   const set = (key: string, val: string) => setForm(f => ({ ...f, [key]: val }));
@@ -33,13 +48,41 @@ const SignUp = () => {
   const selectedUniversity = form.university || "";
   const availableMajors = getMajorsForUniversity(selectedUniversity);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // If user is logged in, show modal
+  if (showLogoutModal && currentUser) {
+    return (
+      <Dialog open={true} onOpenChange={() => setShowLogoutModal(false)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Already Signed In</DialogTitle>
+            <DialogDescription>
+              You are currently signed in as <strong>{currentUser.full_name}</strong> ({currentUser.role}).
+              Would you like to log out and create a new account?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2">
+            <Button variant="outline" onClick={() => navigate(`/${currentUser.role === "university" ? "admin" : currentUser.role}`)}>
+              Return to Dashboard
+            </Button>
+            <Button onClick={() => { onLogout?.(); setShowLogoutModal(false); }}>
+              <LogOut className="h-4 w-4 mr-2" /> Log Out & Register
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
     const { name, email, password, confirmPassword } = form;
     if (!name || !email || !password) { setError("Please fill in all required fields."); return; }
     if (password !== confirmPassword) { setError("Passwords do not match."); return; }
+    
+    const pwError = validatePassword(password);
+    if (pwError) { setError(pwError); return; }
     
     // University email restriction for students
     if (role === "student") {
@@ -61,26 +104,31 @@ const SignUp = () => {
       setError(`GPA must be between 0 and ${maxGpa}.`); return;
     }
 
-    const result = registerUser({
-      name: name.trim(), email: email.trim(), password,
-      role: role as UserRole | "university",
+    setLoading(true);
+    const result = await signUp({
+      email: email.trim(),
+      password,
+      full_name: name.trim(),
+      role: role as AppRole,
       ...(role === "student" ? {
-        university: form.university, major: form.major,
-        gpa: gpa || 0, gpaScale: gpaScale as "4" | "5",
+        university: form.university,
+        major: form.major,
+        gpa: gpa || 0,
+        gpa_scale: gpaScale as "4" | "5",
         nationality: form.nationality || "Saudi",
-        avatar: name.trim().split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase(),
       } : {}),
       ...(role === "hr" ? {
-        company: form.company, position: form.position || "", industry: form.industry || "",
-        avatar: name.trim().split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase(),
+        company_name: form.company,
+        position: form.position || "",
+        industry: form.industry || "",
       } : {}),
       ...(role === "university" ? {
-        universityName: form.universityName || name,
-        officialDomain: form.officialDomain || "",
-        adminContact: form.adminContact || "",
-        avatar: name.trim().split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase(),
+        university_name: form.universityName || name,
+        official_domain: form.officialDomain || "",
+        admin_contact: form.adminContact || "",
       } : {}),
     });
+    setLoading(false);
 
     if (!result.success) { setError(result.error || "Registration failed."); return; }
     setSuccess(true);
@@ -93,33 +141,26 @@ const SignUp = () => {
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success/10 mb-4">
             <GraduationCap className="h-8 w-8 text-success" />
           </div>
-          <h2 className="text-xl font-bold font-heading mb-2">Account Created!</h2>
-          <p className="text-sm text-muted-foreground mb-6">You can now sign in with your credentials.</p>
-          <Button onClick={() => navigate("/login/student")} className="w-full">Go to Sign In</Button>
+          <h2 className="text-xl font-bold font-heading mb-2">Check Your Email</h2>
+          <p className="text-sm text-muted-foreground mb-6">We've sent a verification link to your email. Please verify your account before signing in.</p>
+          <Button onClick={() => navigate(`/login/${role}`)} className="w-full">Go to Sign In</Button>
         </motion.div>
       </div>
     );
   }
+
+  const meta = roleMeta[role];
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <motion.div className="w-full max-w-lg rounded-2xl border bg-card p-8 shadow-lg" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
         <div className="text-center mb-6">
           <img src={logo} alt="HireQimah" className="mx-auto h-14 mb-4" />
-          <h1 className="text-2xl font-bold font-heading">Create Account</h1>
-          <p className="text-sm text-muted-foreground">Join HireQimah — Saudi's Verified Talent Platform</p>
-        </div>
-
-        <div className="grid grid-cols-3 gap-2 mb-6">
-          {(Object.keys(roleMeta) as SignUpRole[]).map(r => {
-            const meta = roleMeta[r];
-            return (
-              <button key={r} type="button" onClick={() => { setRole(r); setForm({}); }}
-                className={`flex flex-col items-center gap-1 rounded-lg border-2 p-3 text-xs font-medium transition-all ${role === r ? "border-primary bg-primary/5 text-primary" : "border-border text-muted-foreground hover:border-primary/30"}`}>
-                <meta.icon className="h-5 w-5" />{meta.label}
-              </button>
-            );
-          })}
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 mb-3">
+            <meta.icon className="h-7 w-7 text-primary" />
+          </div>
+          <h1 className="text-2xl font-bold font-heading">Create {meta.label} Account</h1>
+          <p className="text-sm text-muted-foreground">{meta.desc}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3">
@@ -183,9 +224,9 @@ const SignUp = () => {
           )}
 
           <div>
-            <Label>Password *</Label>
+            <Label>Password * <span className="text-xs text-muted-foreground">(Min 12 chars, uppercase, lowercase, number, special)</span></Label>
             <div className="relative">
-              <Input type={showPw ? "text" : "password"} placeholder="Min 8 chars, uppercase, number, special" value={form.password || ""} onChange={e => set("password", e.target.value)} maxLength={128} />
+              <Input type={showPw ? "text" : "password"} value={form.password || ""} onChange={e => set("password", e.target.value)} maxLength={128} />
               <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" onClick={() => setShowPw(!showPw)}>
                 {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -194,11 +235,11 @@ const SignUp = () => {
           <div><Label>Confirm Password *</Label><Input type="password" placeholder="Re-enter password" value={form.confirmPassword || ""} onChange={e => set("confirmPassword", e.target.value)} maxLength={128} /></div>
 
           {error && <p className="text-sm text-destructive">{error}</p>}
-          <Button type="submit" className="w-full">Create Account</Button>
+          <Button type="submit" className="w-full" disabled={loading}>{loading ? "Creating Account..." : "Create Account"}</Button>
         </form>
 
         <p className="mt-4 text-center text-sm text-muted-foreground">
-          Already have an account? <button onClick={() => navigate("/login/student")} className="text-primary hover:underline font-medium">Sign In</button>
+          Already have an account? <button onClick={() => navigate(`/login/${role}`)} className="text-primary hover:underline font-medium">Sign In</button>
         </p>
       </motion.div>
     </div>

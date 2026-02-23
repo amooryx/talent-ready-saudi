@@ -9,17 +9,19 @@ import {
   type StoredUser, getAllUsers, getStudents, updateUser, calculateERS,
   getActivityLog, UNIVERSITIES, CERTIFICATION_POINTS,
 } from "@/lib/authStore";
+import type { AuthUser } from "@/lib/supabaseAuth";
 import {
   ShieldCheck, Users, FileCheck, Settings, CheckCircle, XCircle, Clock,
   Award, BarChart3, Ban, Activity
 } from "lucide-react";
 
-interface AdminDashboardProps { user: StoredUser; }
+interface AdminDashboardProps { user: AuthUser; }
 
-const AdminDashboard = ({ user }: AdminDashboardProps) => {
+const AdminDashboard = ({ user: authUser }: AdminDashboardProps) => {
   const allUsers = getAllUsers();
   const students = getStudents();
   const activityLog = getActivityLog();
+  const user = allUsers.find(u => u.email === authUser.email) || { id: authUser.id, name: authUser.full_name, role: "admin" } as StoredUser;
   const [, forceUpdate] = useState(0);
   const refresh = () => forceUpdate(n => n + 1);
 

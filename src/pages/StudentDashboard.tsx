@@ -12,22 +12,27 @@ import {
   getOpportunities, getStudentApplications, applyToOpportunity, withdrawApplication,
   calculateMatchScore, getNotifications, markNotificationRead, CERTIFICATION_POINTS,
 } from "@/lib/authStore";
+import type { AuthUser } from "@/lib/supabaseAuth";
 import {
   Trophy, Target, Briefcase, Map, Bell, Upload, Award,
   TrendingUp, Star, CheckCircle, Circle, Building2, Clock, MapPin, XCircle
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-interface StudentDashboardProps { user: StoredUser; }
+interface StudentDashboardProps { user: AuthUser; }
 
-const StudentDashboard = ({ user }: StudentDashboardProps) => {
+const StudentDashboard = ({ user: authUser }: StudentDashboardProps) => {
   const { toast } = useToast();
   const [leaderFilter, setLeaderFilter] = useState<"global" | "university" | "major">("global");
   const [, forceUpdate] = useState(0);
   const refresh = () => forceUpdate(n => n + 1);
 
-  const ers = calculateERS(user);
+  // Bridge: use mock data user by email for now until full migration
   const allStudents = getStudents();
+  const mockUser = allStudents.find(s => s.email === authUser.email) || allStudents[0];
+  const user = mockUser || { id: authUser.id, name: authUser.full_name, email: authUser.email } as StoredUser;
+
+  const ers = calculateERS(user);
   const opportunities = getOpportunities().filter(o => o.status === "open");
   const myApps = getStudentApplications(user.id);
   const notifications = getNotifications(user.id);

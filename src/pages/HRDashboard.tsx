@@ -17,18 +17,24 @@ import {
   getOpportunityApplications, updateApplicationStatus, getUserById,
   calculateMatchScore, getNotifications, markNotificationRead, CERTIFICATION_POINTS,
 } from "@/lib/authStore";
+import type { AuthUser } from "@/lib/supabaseAuth";
 import {
   Search, Users, BarChart3, Bell, Star, Award, Eye, TrendingUp, Briefcase,
   Plus, Edit, Trash2, CheckCircle, XCircle, Clock, MapPin, Building2, AlertTriangle, X
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-interface HRDashboardProps { user: StoredUser; }
+interface HRDashboardProps { user: AuthUser; }
 
 const typeLabels: Record<string, string> = { coop: "CO-OP", internship: "Internship", "part-time": "Part-time", junior: "Junior" };
 
-const HRDashboard = ({ user }: HRDashboardProps) => {
+const HRDashboard = ({ user: authUser }: HRDashboardProps) => {
   const { toast } = useToast();
+
+  // Bridge to mock data
+  const allUsers = getStudents();
+  const mockUser = allUsers.find(s => s.email === authUser.email) as StoredUser | undefined;
+  const user = mockUser || { id: authUser.id, name: authUser.full_name, email: authUser.email, company: "Company" } as StoredUser;
   const [searchQuery, setSearchQuery] = useState("");
   const [minERS, setMinERS] = useState("");
   const [filterMajor, setFilterMajor] = useState("all");

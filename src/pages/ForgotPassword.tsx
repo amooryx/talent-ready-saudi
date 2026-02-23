@@ -6,20 +6,25 @@ import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
 import { Mail, ArrowLeft, CheckCircle } from "lucide-react";
 import logo from "@/assets/hireqimah-logo.png";
-import { getUserByEmail } from "@/lib/authStore";
+import { resetPassword } from "@/lib/supabaseAuth";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     if (!email.trim()) { setError("Please enter your email."); return; }
-    const user = getUserByEmail(email);
-    if (!user) { setError("No account found with this email."); return; }
+    
+    setLoading(true);
+    const result = await resetPassword(email);
+    setLoading(false);
+    
+    if (!result.success) { setError(result.error || "Failed to send reset email."); return; }
     setSent(true);
   };
 
@@ -30,7 +35,7 @@ const ForgotPassword = () => {
           <img src={logo} alt="HireQimah" className="mx-auto h-14 mb-4" />
           <h1 className="text-2xl font-bold font-heading">{sent ? "Check Your Email" : "Forgot Password"}</h1>
           <p className="text-sm text-muted-foreground">
-            {sent ? "A reset link has been sent (simulated)." : "Enter your email to receive a reset link."}
+            {sent ? "A password reset link has been sent to your email." : "Enter your email to receive a reset link."}
           </p>
         </div>
 
@@ -39,8 +44,8 @@ const ForgotPassword = () => {
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success/10">
               <CheckCircle className="h-8 w-8 text-success" />
             </div>
-            <p className="text-sm text-muted-foreground">In a production system, a password reset link would be sent to <strong>{email}</strong>.</p>
-            <Button onClick={() => navigate("/login/student")} className="w-full">Back to Sign In</Button>
+            <p className="text-sm text-muted-foreground">Check your inbox at <strong>{email}</strong> and follow the link to reset your password.</p>
+            <Button onClick={() => navigate("/auth/select-role?mode=signin")} className="w-full">Back to Sign In</Button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -49,10 +54,10 @@ const ForgotPassword = () => {
               <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} maxLength={255} />
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
-            <Button type="submit" className="w-full">
-              <Mail className="h-4 w-4 mr-2" /> Send Reset Link
+            <Button type="submit" className="w-full" disabled={loading}>
+              <Mail className="h-4 w-4 mr-2" /> {loading ? "Sending..." : "Send Reset Link"}
             </Button>
-            <button type="button" onClick={() => navigate("/login/student")} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary mx-auto">
+            <button type="button" onClick={() => navigate("/auth/select-role?mode=signin")} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary mx-auto">
               <ArrowLeft className="h-4 w-4" /> Back to Sign In
             </button>
           </form>
