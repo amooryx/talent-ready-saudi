@@ -51,26 +51,212 @@ export type Database = {
         Row: {
           category: string
           created_at: string
+          decay_rate_annual: number | null
           description: string | null
           id: string
+          is_hadaf_reimbursed: boolean | null
+          is_volatile: boolean | null
           name: string
+          sector: string | null
           weight: number
         }
         Insert: {
           category: string
           created_at?: string
+          decay_rate_annual?: number | null
           description?: string | null
           id?: string
+          is_hadaf_reimbursed?: boolean | null
+          is_volatile?: boolean | null
           name: string
+          sector?: string | null
           weight?: number
         }
         Update: {
           category?: string
           created_at?: string
+          decay_rate_annual?: number | null
           description?: string | null
           id?: string
+          is_hadaf_reimbursed?: boolean | null
+          is_volatile?: boolean | null
           name?: string
+          sector?: string | null
           weight?: number
+        }
+        Relationships: []
+      }
+      document_integrity: {
+        Row: {
+          author: string | null
+          created_at: string
+          creation_date: string | null
+          enrollment_date: string | null
+          file_path: string
+          file_type: string | null
+          flag: string | null
+          flag_reason: string | null
+          id: string
+          modification_date: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          sha256_hash: string
+          user_id: string
+        }
+        Insert: {
+          author?: string | null
+          created_at?: string
+          creation_date?: string | null
+          enrollment_date?: string | null
+          file_path: string
+          file_type?: string | null
+          flag?: string | null
+          flag_reason?: string | null
+          id?: string
+          modification_date?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          sha256_hash: string
+          user_id: string
+        }
+        Update: {
+          author?: string | null
+          created_at?: string
+          creation_date?: string | null
+          enrollment_date?: string | null
+          file_path?: string
+          file_type?: string | null
+          flag?: string | null
+          flag_reason?: string | null
+          id?: string
+          modification_date?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          sha256_hash?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      endorsements: {
+        Row: {
+          created_at: string
+          endorser_role: string
+          endorser_user_id: string
+          id: string
+          message: string | null
+          skill_name: string
+          student_user_id: string
+        }
+        Insert: {
+          created_at?: string
+          endorser_role: string
+          endorser_user_id: string
+          id?: string
+          message?: string | null
+          skill_name: string
+          student_user_id: string
+        }
+        Update: {
+          created_at?: string
+          endorser_role?: string
+          endorser_user_id?: string
+          id?: string
+          message?: string | null
+          skill_name?: string
+          student_user_id?: string
+        }
+        Relationships: []
+      }
+      ers_scores: {
+        Row: {
+          academic_score: number | null
+          calculated_at: string
+          certification_score: number | null
+          conduct_score: number | null
+          created_at: string
+          decay_applied: number | null
+          explanation: Json | null
+          id: string
+          interview_score: number | null
+          national_readiness_bonus: number | null
+          project_score: number | null
+          recency_score: number | null
+          soft_skills_score: number | null
+          synergy_bonus: number | null
+          total_score: number | null
+          user_id: string
+        }
+        Insert: {
+          academic_score?: number | null
+          calculated_at?: string
+          certification_score?: number | null
+          conduct_score?: number | null
+          created_at?: string
+          decay_applied?: number | null
+          explanation?: Json | null
+          id?: string
+          interview_score?: number | null
+          national_readiness_bonus?: number | null
+          project_score?: number | null
+          recency_score?: number | null
+          soft_skills_score?: number | null
+          synergy_bonus?: number | null
+          total_score?: number | null
+          user_id: string
+        }
+        Update: {
+          academic_score?: number | null
+          calculated_at?: string
+          certification_score?: number | null
+          conduct_score?: number | null
+          created_at?: string
+          decay_applied?: number | null
+          explanation?: Json | null
+          id?: string
+          interview_score?: number | null
+          national_readiness_bonus?: number | null
+          project_score?: number | null
+          recency_score?: number | null
+          soft_skills_score?: number | null
+          synergy_bonus?: number | null
+          total_score?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      global_benchmarks: {
+        Row: {
+          benchmark_score: number
+          created_at: string
+          id: string
+          percentile_data: Json | null
+          region: string | null
+          role_title: string
+          sector: string
+          source: string | null
+          updated_at: string
+        }
+        Insert: {
+          benchmark_score: number
+          created_at?: string
+          id?: string
+          percentile_data?: Json | null
+          region?: string | null
+          role_title: string
+          sector: string
+          source?: string | null
+          updated_at?: string
+        }
+        Update: {
+          benchmark_score?: number
+          created_at?: string
+          id?: string
+          percentile_data?: Json | null
+          region?: string | null
+          role_title?: string
+          sector?: string
+          source?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -128,13 +314,106 @@ export type Database = {
         }
         Relationships: []
       }
+      job_cache: {
+        Row: {
+          company: string | null
+          experience_level: string | null
+          expires_at: string
+          fetched_at: string
+          id: string
+          location: string | null
+          raw_data: Json | null
+          required_certifications: string[] | null
+          required_skills: string[] | null
+          sector: string | null
+          source: string | null
+          source_url: string | null
+          title: string
+        }
+        Insert: {
+          company?: string | null
+          experience_level?: string | null
+          expires_at?: string
+          fetched_at?: string
+          id?: string
+          location?: string | null
+          raw_data?: Json | null
+          required_certifications?: string[] | null
+          required_skills?: string[] | null
+          sector?: string | null
+          source?: string | null
+          source_url?: string | null
+          title: string
+        }
+        Update: {
+          company?: string | null
+          experience_level?: string | null
+          expires_at?: string
+          fetched_at?: string
+          id?: string
+          location?: string | null
+          raw_data?: Json | null
+          required_certifications?: string[] | null
+          required_skills?: string[] | null
+          sector?: string | null
+          source?: string | null
+          source_url?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
+      majors_repository: {
+        Row: {
+          created_at: string
+          department: string | null
+          id: string
+          name: string
+          name_ar: string | null
+          sector: string
+          skill_domain: string | null
+          university_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          department?: string | null
+          id?: string
+          name: string
+          name_ar?: string | null
+          sector: string
+          skill_domain?: string | null
+          university_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          department?: string | null
+          id?: string
+          name?: string
+          name_ar?: string | null
+          sector?: string
+          skill_domain?: string | null
+          university_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "majors_repository_university_id_fkey"
+            columns: ["university_id"]
+            isOneToOne: false
+            referencedRelation: "universities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
           created_at: string
           email: string
+          employment_status: string | null
+          external_verification_token: string | null
           full_name: string
+          graduation_status: string | null
           id: string
+          national_id_encrypted: string | null
           nationality: string | null
           updated_at: string
           user_id: string
@@ -143,8 +422,12 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           email: string
+          employment_status?: string | null
+          external_verification_token?: string | null
           full_name: string
+          graduation_status?: string | null
           id?: string
+          national_id_encrypted?: string | null
           nationality?: string | null
           updated_at?: string
           user_id: string
@@ -153,13 +436,146 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           email?: string
+          employment_status?: string | null
+          external_verification_token?: string | null
           full_name?: string
+          graduation_status?: string | null
           id?: string
+          national_id_encrypted?: string | null
           nationality?: string | null
           updated_at?: string
           user_id?: string
         }
         Relationships: []
+      }
+      skill_matrix: {
+        Row: {
+          created_at: string
+          id: string
+          last_updated: string
+          proficiency_level: string | null
+          skill_id: string | null
+          skill_name: string
+          source: string | null
+          user_id: string
+          verified: boolean | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_updated?: string
+          proficiency_level?: string | null
+          skill_id?: string | null
+          skill_name: string
+          source?: string | null
+          user_id: string
+          verified?: boolean | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_updated?: string
+          proficiency_level?: string | null
+          skill_id?: string | null
+          skill_name?: string
+          source?: string | null
+          user_id?: string
+          verified?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "skill_matrix_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "skill_ontology"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      skill_ontology: {
+        Row: {
+          context_description: string | null
+          created_at: string
+          id: string
+          is_volatile: boolean | null
+          parent_skill_id: string | null
+          sector: string | null
+          skill_category: string
+          skill_name: string
+          weight: number | null
+        }
+        Insert: {
+          context_description?: string | null
+          created_at?: string
+          id?: string
+          is_volatile?: boolean | null
+          parent_skill_id?: string | null
+          sector?: string | null
+          skill_category: string
+          skill_name: string
+          weight?: number | null
+        }
+        Update: {
+          context_description?: string | null
+          created_at?: string
+          id?: string
+          is_volatile?: boolean | null
+          parent_skill_id?: string | null
+          sector?: string | null
+          skill_category?: string
+          skill_name?: string
+          weight?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "skill_ontology_parent_skill_id_fkey"
+            columns: ["parent_skill_id"]
+            isOneToOne: false
+            referencedRelation: "skill_ontology"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      soft_skill_assessments: {
+        Row: {
+          assessed_at: string
+          assessment_type: string | null
+          evidence: Json | null
+          id: string
+          score: number | null
+          skill_id: string | null
+          skill_name: string
+          user_id: string
+        }
+        Insert: {
+          assessed_at?: string
+          assessment_type?: string | null
+          evidence?: Json | null
+          id?: string
+          score?: number | null
+          skill_id?: string | null
+          skill_name: string
+          user_id: string
+        }
+        Update: {
+          assessed_at?: string
+          assessment_type?: string | null
+          evidence?: Json | null
+          id?: string
+          score?: number | null
+          skill_id?: string | null
+          skill_name?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "soft_skill_assessments_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "skill_ontology"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       student_certifications: {
         Row: {
@@ -202,6 +618,7 @@ export type Database = {
       student_profiles: {
         Row: {
           academic_score: number | null
+          career_target: string | null
           certification_score: number | null
           conduct_score: number | null
           created_at: string
@@ -212,6 +629,8 @@ export type Database = {
           id: string
           major: string
           national_rank: number | null
+          onboarding_completed: boolean | null
+          onboarding_progress: number | null
           project_score: number | null
           soft_skills_score: number | null
           target_role: string | null
@@ -223,6 +642,7 @@ export type Database = {
         }
         Insert: {
           academic_score?: number | null
+          career_target?: string | null
           certification_score?: number | null
           conduct_score?: number | null
           created_at?: string
@@ -233,6 +653,8 @@ export type Database = {
           id?: string
           major: string
           national_rank?: number | null
+          onboarding_completed?: boolean | null
+          onboarding_progress?: number | null
           project_score?: number | null
           soft_skills_score?: number | null
           target_role?: string | null
@@ -244,6 +666,7 @@ export type Database = {
         }
         Update: {
           academic_score?: number | null
+          career_target?: string | null
           certification_score?: number | null
           conduct_score?: number | null
           created_at?: string
@@ -254,6 +677,8 @@ export type Database = {
           id?: string
           major?: string
           national_rank?: number | null
+          onboarding_completed?: boolean | null
+          onboarding_progress?: number | null
           project_score?: number | null
           soft_skills_score?: number | null
           target_role?: string | null
@@ -295,6 +720,33 @@ export type Database = {
         }
         Relationships: []
       }
+      synergy_mappings: {
+        Row: {
+          bonus_percentage: number | null
+          created_at: string
+          description: string | null
+          id: string
+          sector_a: string
+          sector_b: string
+        }
+        Insert: {
+          bonus_percentage?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          sector_a: string
+          sector_b: string
+        }
+        Update: {
+          bonus_percentage?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          sector_a?: string
+          sector_b?: string
+        }
+        Relationships: []
+      }
       transcript_uploads: {
         Row: {
           created_at: string
@@ -319,6 +771,36 @@ export type Database = {
           parsed_at?: string | null
           parsed_data?: Json | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      universities: {
+        Row: {
+          created_at: string
+          domain: string | null
+          id: string
+          name: string
+          region: string | null
+          short_code: string | null
+          type: string | null
+        }
+        Insert: {
+          created_at?: string
+          domain?: string | null
+          id?: string
+          name: string
+          region?: string | null
+          short_code?: string | null
+          type?: string | null
+        }
+        Update: {
+          created_at?: string
+          domain?: string | null
+          id?: string
+          name?: string
+          region?: string | null
+          short_code?: string | null
+          type?: string | null
         }
         Relationships: []
       }
@@ -366,6 +848,42 @@ export type Database = {
         Update: {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      verification_requests: {
+        Row: {
+          created_at: string
+          id: string
+          resource_id: string
+          resource_type: string
+          reviewed_at: string | null
+          reviewer_id: string | null
+          reviewer_notes: string | null
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          resource_id: string
+          resource_type: string
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          reviewer_notes?: string | null
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          resource_id?: string
+          resource_type?: string
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          reviewer_notes?: string | null
+          status?: string | null
           user_id?: string
         }
         Relationships: []
