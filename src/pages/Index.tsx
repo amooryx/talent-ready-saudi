@@ -239,7 +239,7 @@ const Index = () => {
             </motion.div>
 
             {/* HR */}
-            <motion.div className="rounded-xl border bg-card p-6 shadow-sm" {...fadeUp} transition={{ delay: 0.1, duration: 0.5 }}>
+            <motion.div className="rounded-xl border bg-card p-6 shadow-sm h-full flex flex-col" {...fadeUp} transition={{ delay: 0.1, duration: 0.5 }}>
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 mb-4">
                 <Building2 className="h-6 w-6 text-primary" />
               </div>
