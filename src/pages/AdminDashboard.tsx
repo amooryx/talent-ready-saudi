@@ -141,7 +141,7 @@ const AdminDashboard = ({ user: authUser }: AdminDashboardProps) => {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
               {Object.entries(roleCounts).map(([role, count]) => (
                 <div key={role} className="rounded-lg border p-4 text-center">
-                  <p className="text-2xl font-bold text-primary">{count}</p>
+                  <p className="text-2xl font-bold text-primary">{count as number}</p>
                   <p className="text-xs text-muted-foreground capitalize">{role}s</p>
                 </div>
               ))}
