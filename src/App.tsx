@@ -67,6 +67,48 @@ const App = () => {
     return () => subscription.unsubscribe();
   }, [loadUser]);
 
+  useEffect(() => {
+    if (!user) return;
+
+    const inactivityTimeoutMs = 20 * 60 * 1000;
+    let timeoutId: number;
+
+    const forceLogout = async () => {
+      await signOut();
+      setUser(null);
+      window.location.assign("/auth/select-role?mode=signin");
+    };
+
+    const resetTimer = () => {
+      window.clearTimeout(timeoutId);
+      timeoutId = window.setTimeout(() => {
+        void forceLogout();
+      }, inactivityTimeoutMs);
+    };
+
+    const activityEvents: (keyof WindowEventMap)[] = [
+      "click",
+      "keydown",
+      "mousemove",
+      "scroll",
+      "touchstart",
+      "visibilitychange",
+    ];
+
+    activityEvents.forEach((eventName) => {
+      window.addEventListener(eventName, resetTimer, { passive: true });
+    });
+
+    resetTimer();
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      activityEvents.forEach((eventName) => {
+        window.removeEventListener(eventName, resetTimer);
+      });
+    };
+  }, [user]);
+
   const handleLogin = () => loadUser();
   const handleLogout = async () => {
     await signOut();

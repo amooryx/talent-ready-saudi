@@ -167,7 +167,7 @@ const Index = () => {
             <p className="text-muted-foreground max-w-2xl mx-auto">HireQimah serves students, HR teams, and universities — each with dedicated tools, dashboards, and verified data.</p>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-8">
+          <div className="grid lg:grid-cols-3 gap-8 items-stretch">
             {/* Students */}
             <motion.div className="rounded-xl border bg-card p-6 shadow-sm" {...fadeUp} transition={{ delay: 0, duration: 0.5 }}>
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 mb-4">

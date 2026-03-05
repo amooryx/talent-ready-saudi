@@ -1,7 +1,7 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { GraduationCap, Building2, University } from "lucide-react";
-import { Button } from "@/components/ui/button";
+
 import logo from "@/assets/hireqimah-logo.png";
 
 const roles = [
