@@ -900,6 +900,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      recalculate_ers: { Args: { p_user_id: string }; Returns: undefined }
     }
     Enums: {
       app_role: "student" | "hr" | "university" | "admin"
