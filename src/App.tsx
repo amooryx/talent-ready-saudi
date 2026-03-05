@@ -146,7 +146,7 @@ const App = () => {
             <Route path="/admin/login" element={user ? <Navigate to={`/${effectiveRole}`} /> : <RoleLogin role="admin" onLogin={handleLogin} />} />
 
             {/* Sign up — always accessible, handles logged-in modal internally */}
-            <Route path="/signup" element={<SignUp currentUser={user} onLogout={handleLogout} />} />
+            <Route path="/signup" element={user ? <Navigate to={`/${effectiveRole ?? "student"}`} /> : <SignUp />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
 

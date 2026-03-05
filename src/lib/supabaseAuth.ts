@@ -67,17 +67,22 @@ export async function signUp(data: SignUpData) {
 export async function signIn(email: string, password: string) {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) return { success: false as const, error: error.message };
-  
-  // Fetch role from user_roles table (server-side truth)
-  const { data: roleData } = await supabase
+
+  const { data: roleData, error: roleError } = await supabase
     .from("user_roles")
     .select("role")
     .eq("user_id", data.user.id)
-    .single();
+    .maybeSingle();
 
-  const role = (roleData?.role as AppRole) || "student";
-  
-  return { success: true as const, user: { ...data.user, role } };
+  if (roleError || !roleData?.role) {
+    await supabase.auth.signOut();
+    return {
+      success: false as const,
+      error: "Account role is not provisioned yet. Please contact support.",
+    };
+  }
+
+  return { success: true as const, user: { ...data.user, role: roleData.role as AppRole } };
 }
 
 // ===== SIGN OUT =====
@@ -94,7 +99,9 @@ export async function getCurrentAuthUser(): Promise<AuthUser | null> {
     .from("user_roles")
     .select("role")
     .eq("user_id", user.id)
-    .single();
+    .maybeSingle();
+
+  if (!roleData?.role) return null;
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -106,7 +113,7 @@ export async function getCurrentAuthUser(): Promise<AuthUser | null> {
     id: user.id,
     email: user.email || "",
     full_name: profile?.full_name || user.user_metadata?.full_name || "",
-    role: (roleData?.role as AppRole) || "student",
+    role: roleData.role as AppRole,
     avatar_url: profile?.avatar_url || undefined,
   };
 }

@@ -327,7 +327,7 @@ const Index = () => {
               </div>
 
               <p className="text-xs text-muted-foreground mb-4">Enterprise access and institutional licensing follow structured onboarding agreements.</p>
-              <Button variant="outline" className="w-full" onClick={() => navigate("/signup?role=university")}>Register as University <ArrowRight className="ml-2 h-4 w-4" /></Button>
+              <Button variant="outline" className="w-full mt-auto" onClick={() => navigate("/signup?role=university")}>Register as University <ArrowRight className="ml-2 h-4 w-4" /></Button>
             </motion.div>
           </div>
 
