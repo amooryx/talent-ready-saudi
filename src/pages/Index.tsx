@@ -167,9 +167,9 @@ const Index = () => {
             <p className="text-muted-foreground max-w-2xl mx-auto">HireQimah serves students, HR teams, and universities — each with dedicated tools, dashboards, and verified data.</p>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-8">
+          <div className="grid lg:grid-cols-3 gap-8 items-stretch">
             {/* Students */}
-            <motion.div className="rounded-xl border bg-card p-6 shadow-sm" {...fadeUp} transition={{ delay: 0, duration: 0.5 }}>
+            <motion.div className="rounded-xl border bg-card p-6 shadow-sm h-full flex flex-col" {...fadeUp} transition={{ delay: 0, duration: 0.5 }}>
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 mb-4">
                 <GraduationCap className="h-6 w-6 text-primary" />
               </div>
@@ -235,11 +235,11 @@ const Index = () => {
                   ))}
                 </div>
               </div>
-              <Button className="w-full" onClick={() => navigate("/auth/select-role?mode=signup")}>Sign Up as Student <ArrowRight className="ml-2 h-4 w-4" /></Button>
+              <Button className="w-full mt-auto" onClick={() => navigate("/auth/select-role?mode=signup")}>Sign Up as Student <ArrowRight className="ml-2 h-4 w-4" /></Button>
             </motion.div>
 
             {/* HR */}
-            <motion.div className="rounded-xl border bg-card p-6 shadow-sm" {...fadeUp} transition={{ delay: 0.1, duration: 0.5 }}>
+            <motion.div className="rounded-xl border bg-card p-6 shadow-sm h-full flex flex-col" {...fadeUp} transition={{ delay: 0.1, duration: 0.5 }}>
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 mb-4">
                 <Building2 className="h-6 w-6 text-primary" />
               </div>
@@ -282,11 +282,11 @@ const Index = () => {
               </div>
 
               <p className="text-xs text-muted-foreground mb-4 italic">Enterprise access and institutional licensing follow structured onboarding agreements.</p>
-              <Button variant="outline" className="w-full" onClick={() => navigate("/signup?role=hr")}>Sign Up as HR <ArrowRight className="ml-2 h-4 w-4" /></Button>
+              <Button variant="outline" className="w-full mt-auto" onClick={() => navigate("/signup?role=hr")}>Sign Up as HR <ArrowRight className="ml-2 h-4 w-4" /></Button>
             </motion.div>
 
             {/* Universities */}
-            <motion.div className="rounded-xl border bg-card p-6 shadow-sm" {...fadeUp} transition={{ delay: 0.2, duration: 0.5 }}>
+            <motion.div className="rounded-xl border bg-card p-6 shadow-sm h-full flex flex-col" {...fadeUp} transition={{ delay: 0.2, duration: 0.5 }}>
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 mb-4">
                 <University className="h-6 w-6 text-primary" />
               </div>
@@ -327,7 +327,7 @@ const Index = () => {
               </div>
 
               <p className="text-xs text-muted-foreground mb-4">Enterprise access and institutional licensing follow structured onboarding agreements.</p>
-              <Button variant="outline" className="w-full" onClick={() => navigate("/signup?role=university")}>Register as University <ArrowRight className="ml-2 h-4 w-4" /></Button>
+              <Button variant="outline" className="w-full mt-auto" onClick={() => navigate("/signup?role=university")}>Register as University <ArrowRight className="ml-2 h-4 w-4" /></Button>
             </motion.div>
           </div>
 

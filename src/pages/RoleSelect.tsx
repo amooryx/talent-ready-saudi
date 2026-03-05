@@ -1,7 +1,7 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { GraduationCap, Building2, University } from "lucide-react";
-import { Button } from "@/components/ui/button";
+
 import logo from "@/assets/hireqimah-logo.png";
 
 const roles = [
@@ -57,23 +57,27 @@ const RoleSelect = () => {
 
         <div className="grid gap-4 sm:grid-cols-3">
           {roles.map((role, i) => (
-            <motion.button
+            <motion.div
               key={role.key}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: i * 0.1 }}
-              onClick={() => navigate(isSignUp ? role.signupPath : role.signinPath)}
-              className="group flex flex-col items-center gap-3 rounded-2xl border-2 border-border bg-card p-6 text-center shadow-sm transition-all hover:border-primary hover:shadow-md"
             >
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 transition-colors group-hover:bg-primary/20">
-                <role.icon className="h-7 w-7 text-primary" />
-              </div>
-              <h2 className="text-lg font-semibold font-heading">{role.label}</h2>
-              <p className="text-xs text-muted-foreground leading-relaxed">{role.desc}</p>
-              <Button size="sm" className="mt-2 w-full">
-                Continue as {role.label.split(" /")[0]}
-              </Button>
-            </motion.button>
+              <button
+                type="button"
+                onClick={() => navigate(isSignUp ? role.signupPath : role.signinPath)}
+                className="group flex w-full flex-col items-center gap-3 rounded-2xl border-2 border-border bg-card p-6 text-center shadow-sm transition-all hover:border-primary hover:shadow-md"
+              >
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 transition-colors group-hover:bg-primary/20">
+                  <role.icon className="h-7 w-7 text-primary" />
+                </div>
+                <h2 className="text-lg font-semibold font-heading">{role.label}</h2>
+                <p className="text-xs text-muted-foreground leading-relaxed">{role.desc}</p>
+                <span className="mt-2 inline-flex h-9 w-full items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground transition-colors group-hover:bg-primary/90">
+                  Continue as {role.label.split(" /")[0]}
+                </span>
+              </button>
+            </motion.div>
           ))}
         </div>
 

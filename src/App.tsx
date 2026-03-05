@@ -67,6 +67,47 @@ const App = () => {
     return () => subscription.unsubscribe();
   }, [loadUser]);
 
+  useEffect(() => {
+    if (!user) return;
+
+    const inactivityTimeoutMs = 20 * 60 * 1000;
+    let timeoutId: number;
+
+    const forceLogout = async () => {
+      await signOut();
+      setUser(null);
+      window.location.assign("/auth/select-role?mode=signin");
+    };
+
+    const resetTimer = () => {
+      window.clearTimeout(timeoutId);
+      timeoutId = window.setTimeout(() => {
+        void forceLogout();
+      }, inactivityTimeoutMs);
+    };
+
+    const activityEvents: (keyof WindowEventMap)[] = [
+      "click",
+      "keydown",
+      "mousemove",
+      "scroll",
+      "touchstart",
+    ];
+
+    activityEvents.forEach((eventName) => {
+      window.addEventListener(eventName, resetTimer, { passive: true });
+    });
+
+    resetTimer();
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      activityEvents.forEach((eventName) => {
+        window.removeEventListener(eventName, resetTimer);
+      });
+    };
+  }, [user]);
+
   const handleLogin = () => loadUser();
   const handleLogout = async () => {
     await signOut();
@@ -104,7 +145,7 @@ const App = () => {
             <Route path="/admin/login" element={user ? <Navigate to={`/${effectiveRole}`} /> : <RoleLogin role="admin" onLogin={handleLogin} />} />
 
             {/* Sign up — always accessible, handles logged-in modal internally */}
-            <Route path="/signup" element={<SignUp currentUser={user} onLogout={handleLogout} />} />
+            <Route path="/signup" element={user ? <Navigate to={`/${effectiveRole ?? "student"}`} /> : <SignUp />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
 
