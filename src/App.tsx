@@ -92,7 +92,6 @@ const App = () => {
       "mousemove",
       "scroll",
       "touchstart",
-      "visibilitychange",
     ];
 
     activityEvents.forEach((eventName) => {
