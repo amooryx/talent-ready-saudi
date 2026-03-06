@@ -55,7 +55,7 @@ const Index = () => {
               Standardized readiness scoring · Verified academic inputs · Real-time market intelligence · National leaderboard system
             </motion.p>
             <motion.div className="flex flex-wrap gap-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
-              <Button size="lg" className={`bg-primary text-primary-foreground hover:bg-primary/90 ${ctaBtnClass}`} onClick={() => navigate("/auth/select-role?mode=signup")}>
+              <Button size="lg" className={`bg-primary text-primary-foreground hover:bg-primary/90 ${ctaBtnClass}`} onClick={() => navigate("/signup?role=student")}>
                 <GraduationCap className="mr-2 h-5 w-5" /> Sign Up as Student
               </Button>
               <Button size="lg" className={`bg-secondary text-secondary-foreground hover:bg-secondary/90 ${ctaBtnClass}`} onClick={() => navigate("/signup?role=hr")}>
@@ -235,7 +235,7 @@ const Index = () => {
                   ))}
                 </div>
               </div>
-              <Button className="w-full mt-auto" onClick={() => navigate("/auth/select-role?mode=signup")}>Sign Up as Student <ArrowRight className="ml-2 h-4 w-4" /></Button>
+              <Button className="w-full mt-auto" onClick={() => navigate("/signup?role=student")}>Sign Up as Student <ArrowRight className="ml-2 h-4 w-4" /></Button>
             </motion.div>
 
             {/* HR */}
@@ -538,7 +538,7 @@ const Index = () => {
               <GraduationCap className="h-10 w-10 text-primary mx-auto mb-4" />
               <h3 className="text-lg font-bold font-heading mb-2">Students</h3>
               <p className="text-sm text-muted-foreground mb-6">Build your verified readiness profile and track your Qimah.</p>
-              <Button className="w-full" onClick={() => navigate("/auth/select-role?mode=signup")}>
+              <Button className="w-full" onClick={() => navigate("/signup?role=student")}>
                 Sign Up as Student <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </motion.div>
