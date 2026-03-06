@@ -55,7 +55,7 @@ const Index = () => {
               Standardized readiness scoring · Verified academic inputs · Real-time market intelligence · National leaderboard system
             </motion.p>
             <motion.div className="flex flex-wrap gap-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
-              <Button size="lg" className={`bg-primary text-primary-foreground hover:bg-primary/90 ${ctaBtnClass}`} onClick={() => navigate("/auth/select-role?mode=signup")}>
+              <Button size="lg" className={`bg-primary text-primary-foreground hover:bg-primary/90 ${ctaBtnClass}`} onClick={() => navigate("/signup?role=student")}>
                 <GraduationCap className="mr-2 h-5 w-5" /> Sign Up as Student
               </Button>
               <Button size="lg" className={`bg-secondary text-secondary-foreground hover:bg-secondary/90 ${ctaBtnClass}`} onClick={() => navigate("/signup?role=hr")}>
