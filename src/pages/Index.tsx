@@ -206,9 +206,7 @@ const Index = () => {
                 {[
                   { title: "Learning Intelligence Panel", items: "Skill radar visualization · Knowledge gap analysis · Retention tracking · Confidence scoring" },
                   { title: "Career Readiness Tracker", items: "Target job mapping · % readiness calculation · Missing competencies · Suggested improvement pathway" },
-                  { title: "AI Study Optimization", items: "Personalized scheduling · Focus time detection · Burnout signals · Adaptive revision intervals" },
-                  { title: "Verified Performance Portfolio", items: "Project validation · Simulation performance logs · Certification scoring breakdown · Recruiter visibility controls" },
-                  { title: "Engagement Feedback", items: "Participation index · Conduct scoring transparency · Behavioral improvement insights" },
+
                 ].map(f => (
                   <div key={f.title} className="rounded-lg border bg-muted/30 p-3">
                     <p className="text-xs font-semibold text-foreground mb-1">{f.title}</p>
