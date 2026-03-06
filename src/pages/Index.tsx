@@ -204,7 +204,6 @@ const Index = () => {
               <div className="space-y-3 mb-4">
                 <h4 className="font-semibold text-sm text-foreground">Dashboard Capabilities</h4>
                 {[
-                  { title: "Learning Intelligence Panel", items: "Skill radar visualization · Knowledge gap analysis · Retention tracking · Confidence scoring" },
                   { title: "Career Readiness Tracker", items: "Target job mapping · % readiness calculation · Missing competencies · Suggested improvement pathway" },
 
                 ].map(f => (
