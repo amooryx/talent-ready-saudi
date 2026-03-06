@@ -235,7 +235,7 @@ const Index = () => {
                   ))}
                 </div>
               </div>
-              <Button className="w-full mt-auto" onClick={() => navigate("/auth/select-role?mode=signup")}>Sign Up as Student <ArrowRight className="ml-2 h-4 w-4" /></Button>
+              <Button className="w-full mt-auto" onClick={() => navigate("/signup?role=student")}>Sign Up as Student <ArrowRight className="ml-2 h-4 w-4" /></Button>
             </motion.div>
 
             {/* HR */}
