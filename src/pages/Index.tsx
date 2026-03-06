@@ -538,7 +538,7 @@ const Index = () => {
               <GraduationCap className="h-10 w-10 text-primary mx-auto mb-4" />
               <h3 className="text-lg font-bold font-heading mb-2">Students</h3>
               <p className="text-sm text-muted-foreground mb-6">Build your verified readiness profile and track your Qimah.</p>
-              <Button className="w-full" onClick={() => navigate("/auth/select-role?mode=signup")}>
+              <Button className="w-full" onClick={() => navigate("/signup?role=student")}>
                 Sign Up as Student <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </motion.div>
