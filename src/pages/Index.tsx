@@ -331,31 +331,6 @@ const Index = () => {
             </motion.div>
           </div>
 
-          {/* Admin Dashboard Features */}
-          <motion.div className="mt-8 rounded-xl border bg-card p-6 shadow-sm" {...fadeUp} transition={{ delay: 0.3, duration: 0.5 }}>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                <Shield className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-semibold font-heading">👨‍💼 Platform Administration</h3>
-                <p className="text-xs text-muted-foreground">Centralized governance, security, and system monitoring</p>
-              </div>
-            </div>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              {[
-                { title: "Security & Governance Controls", items: "Role-based access control · Audit logs · Permission matrix" },
-                { title: "System Monitoring", items: "Model performance tracking · Data quality metrics · Anomaly alerts" },
-                { title: "Platform Growth Analytics", items: "Active institutions · User segmentation · Institutional onboarding tracking" },
-                { title: "Revenue & Licensing Overview", items: "Institutional agreements tracking · Subscription tiers · Growth pipeline visibility" },
-              ].map(f => (
-                <div key={f.title} className="rounded-lg border bg-muted/30 p-3">
-                  <p className="text-xs font-semibold text-foreground mb-1">{f.title}</p>
-                  <p className="text-xs text-muted-foreground">{f.items}</p>
-                </div>
-              ))}
-            </div>
-          </motion.div>
         </div>
       </section>
 

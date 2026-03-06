@@ -73,6 +73,12 @@ const DEMO_ACCOUNTS = [
     role: "admin",
     full_name: "HireQimah Platform Admin",
   },
+  {
+    email: "demo@hireqimah.com",
+    password: "DemoAccess@2026!",
+    role: "admin",
+    full_name: "Demo Admin Account",
+  },
 ];
 
 async function syncAccountData(adminClient: any, userId: string, account: (typeof DEMO_ACCOUNTS)[number]) {
