@@ -53,7 +53,7 @@ const HRDashboard = ({ user: authUser }: HRDashboardProps) => {
   const [notifications, setNotifications] = useState<any[]>([]);
 
   const loadDashboard = useCallback(async () => {
-    const [{ data: hr }, { data: students }, { data: sl }, { data: majorsList }, { data: certs }, { data: sCerts }, { data: ivs }, { data: notifs }] = await Promise.all([
+    const [{ data: hr }, { data: students }, { data: sl }, { data: majorsList }, { data: certs }, { data: sCerts }, { data: ivs }, { data: jp }, { data: notifs }] = await Promise.all([
       supabase.from("hr_profiles").select("*").eq("user_id", authUser.id).single(),
       supabase.from("student_profiles")
         .select("*, profiles!inner(full_name, avatar_url, email, user_id)")
