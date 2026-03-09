@@ -10,6 +10,7 @@ import StudentOnboarding from "@/components/StudentOnboarding";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
+import { untypedTable } from "@/lib/untypedTable";
 import { fetchStudentDashboard, calculateERSFromData, fetchLeaderboard } from "@/lib/supabaseData";
 import type { AuthUser } from "@/lib/supabaseAuth";
 import {
