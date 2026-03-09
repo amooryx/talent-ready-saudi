@@ -251,6 +251,16 @@ const StudentDashboard = ({ user: authUser }: StudentDashboardProps) => {
                   <Star className="h-3 w-3 mr-1" />+{ers.breakdown.nationalReadiness}% National
                 </Badge>
               )}
+              {/* Badges */}
+              {badges.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {badges.map(b => (
+                    <Badge key={b.id} variant="secondary" className="text-[10px]">
+                      <span className="mr-1">{b.badge_icon}</span>{b.badge_label}
+                    </Badge>
+                  ))}
+                </div>
+              )}
               {/* Profile Completeness */}
               <div className="w-full mt-4 border-t pt-4">
                 <p className="text-xs font-semibold mb-2">Profile Completeness</p>
