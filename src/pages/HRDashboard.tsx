@@ -75,6 +75,17 @@ const HRDashboard = ({ user: authUser }: HRDashboardProps) => {
     setShortlists(sl || []);
   };
 
+  const handleInterviewRequest = async (studentUserId: string, studentName: string) => {
+    await supabase.from("audit_logs").insert({
+      user_id: authUser.id,
+      action: "interview_requested",
+      resource_type: "student",
+      resource_id: studentUserId,
+      details: { student_name: studentName, hr_company: hrProfile?.company_name },
+    });
+    toast({ title: "Interview Requested", description: `Request sent for ${studentName}.` });
+  };
+
   if (loading) {
     return (
       <div className="container py-6 space-y-6">
