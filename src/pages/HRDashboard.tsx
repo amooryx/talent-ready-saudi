@@ -122,7 +122,7 @@ const HRDashboard = ({ user: authUser }: HRDashboardProps) => {
       job_description: interviewDesc || null,
       status: "requested",
     });
-    await supabase.from("notifications").insert({
+    await untypedTable("notifications").insert({
       user_id: interviewDialog.user_id,
       type: "interview_request",
       title: "New Interview Request",
