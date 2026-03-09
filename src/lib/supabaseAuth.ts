@@ -10,32 +10,50 @@ export interface AuthUser {
   avatar_url?: string;
 }
 
+// ===== AUTH GUARD (rate limit + lockout) =====
+async function callAuthGuard(action: string, email: string, extra?: Record<string, unknown>) {
+  try {
+    const { data, error } = await supabase.functions.invoke("auth-guard", {
+      body: { action, email, ...extra },
+    });
+    if (error) {
+      console.error("auth-guard invoke error:", error);
+      return null;
+    }
+    return data;
+  } catch {
+    return null; // fail-open to not block login if edge function is down
+  }
+}
+
 // ===== SIGN UP =====
 interface SignUpData {
   email: string;
   password: string;
   full_name: string;
   role: AppRole;
-  // Student-specific
   university?: string;
   major?: string;
   gpa?: number;
   gpa_scale?: "4" | "5";
   nationality?: string;
-  // HR-specific
   company_name?: string;
   position?: string;
   industry?: string;
-  // University-specific
   university_name?: string;
   official_domain?: string;
   admin_contact?: string;
 }
 
 export async function signUp(data: SignUpData) {
-  // Validate password strength
   const pwError = validatePassword(data.password);
   if (pwError) return { success: false, error: pwError };
+
+  // Rate limit check
+  const guard = await callAuthGuard("check_lockout", data.email);
+  if (guard?.rateLimited) {
+    return { success: false, error: "Too many requests. Please try again in a minute." };
+  }
 
   const { data: authData, error } = await supabase.auth.signUp({
     email: data.email,
@@ -63,10 +81,32 @@ export async function signUp(data: SignUpData) {
   return { success: true, user: authData.user };
 }
 
-// ===== SIGN IN =====
+// ===== SIGN IN (with lockout + audit) =====
 export async function signIn(email: string, password: string) {
+  // Check lockout first
+  const lockoutCheck = await callAuthGuard("check_lockout", email);
+  if (lockoutCheck?.locked) {
+    const until = new Date(lockoutCheck.until);
+    const minutesLeft = Math.max(1, Math.ceil((until.getTime() - Date.now()) / 60000));
+    return {
+      success: false as const,
+      error: `Account temporarily locked due to too many failed attempts. Try again in ${minutesLeft} minute(s).`,
+    };
+  }
+  if (lockoutCheck?.rateLimited) {
+    return { success: false as const, error: "Too many login attempts. Please wait a minute." };
+  }
+
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) return { success: false as const, error: error.message };
+
+  if (error) {
+    // Record failed attempt
+    await callAuthGuard("record_attempt", email, { success: false });
+    return { success: false as const, error: error.message };
+  }
+
+  // Record successful attempt (clears failures)
+  await callAuthGuard("record_attempt", email, { success: true });
 
   const { data: roleData, error: roleError } = await supabase
     .from("user_roles")
@@ -81,6 +121,16 @@ export async function signIn(email: string, password: string) {
       error: "Account role is not provisioned yet. Please contact support.",
     };
   }
+
+  // Audit log: successful login
+  try {
+    await supabase.from("audit_logs").insert({
+      user_id: data.user.id,
+      action: "login_success",
+      resource_type: "auth",
+      details: { email, timestamp: new Date().toISOString() },
+    });
+  } catch { /* non-blocking */ }
 
   return { success: true as const, user: { ...data.user, role: roleData.role as AppRole } };
 }
