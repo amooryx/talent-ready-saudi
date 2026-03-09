@@ -76,6 +76,7 @@ const HRDashboard = ({ user: authUser }: HRDashboardProps) => {
     setCertNames([...new Set((certs || []).map((c: any) => c.name))]);
     setStudentCerts(sCerts || []);
     setInterviews(ivs || []);
+    setJobPostings(jp || []);
     setNotifications(notifs || []);
     setLoading(false);
   }, [authUser.id]);
