@@ -126,7 +126,7 @@ const HRDashboard = ({ user: authUser }: HRDashboardProps) => {
 
         <TabsContent value="search">
           <div className="rounded-xl border bg-card p-6">
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input placeholder="Search by name..." className="pl-9" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} maxLength={100} />
@@ -137,6 +137,13 @@ const HRDashboard = ({ user: authUser }: HRDashboardProps) => {
                 <SelectContent className="max-h-60">
                   <SelectItem value="all">All Majors</SelectItem>
                   {majors.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select value={filterCert} onValueChange={setFilterCert}>
+                <SelectTrigger><SelectValue placeholder="Certification" /></SelectTrigger>
+                <SelectContent className="max-h-60">
+                  <SelectItem value="all">All Certifications</SelectItem>
+                  {certNames.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                 </SelectContent>
               </Select>
               <div className="text-sm text-muted-foreground flex items-center">{filtered.length} candidates</div>
