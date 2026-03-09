@@ -99,7 +99,7 @@ const Index = () => {
       </section>
 
       {/* ───────── HOW IT WORKS ───────── */}
-      <section className="bg-accent/50 py-16 md:py-20">
+      <section id="features" className="bg-accent/50 py-16 md:py-20">
         <div className="container">
           <motion.div className="text-center mb-10" {...fadeUp}>
             <h2 className="text-2xl md:text-3xl font-bold font-heading mb-2">How HireQimah Works</h2>
@@ -123,7 +123,7 @@ const Index = () => {
       </section>
 
       {/* ───────── STAKEHOLDERS ───────── */}
-      <section className="container py-16 md:py-20">
+      <section id="for-students" className="container py-16 md:py-20">
         <motion.div className="text-center mb-10" {...fadeUp}>
           <h2 className="text-2xl md:text-3xl font-bold font-heading mb-2">Built for the Talent Ecosystem</h2>
         </motion.div>
@@ -148,7 +148,7 @@ const Index = () => {
       </section>
 
       {/* ───────── WHAT IS ERS ───────── */}
-      <section className="bg-accent/50 py-16 md:py-20">
+      <section id="for-companies" className="bg-accent/50 py-16 md:py-20">
         <div className="container max-w-3xl text-center">
           <motion.div {...fadeUp}>
             <BarChart3 className="h-10 w-10 text-primary mx-auto mb-4" />
