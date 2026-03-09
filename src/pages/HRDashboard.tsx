@@ -44,6 +44,9 @@ const HRDashboard = ({ user: authUser }: HRDashboardProps) => {
   const [viewingProfile, setViewingProfile] = useState<any>(null);
   const [interviewDialog, setInterviewDialog] = useState<any>(null);
   const [interviewTitle, setInterviewTitle] = useState("");
+  const [jobPostings, setJobPostings] = useState<any[]>([]);
+  const [showJobForm, setShowJobForm] = useState(false);
+  const [jobForm, setJobForm] = useState({ title: "", description: "", location: "Saudi Arabia", sector: "", required_skills: "", min_ers_score: "" });
   const [interviewDesc, setInterviewDesc] = useState("");
   const [messageDialog, setMessageDialog] = useState<any>(null);
   const [messageText, setMessageText] = useState("");
