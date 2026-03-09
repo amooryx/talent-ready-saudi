@@ -134,7 +134,7 @@ const Index = () => {
           {[
             { icon: GraduationCap, emoji: "🎓", title: "Students", desc: "Build verified employability profiles and track readiness.", cta: "Create Student Profile", path: "/signup?role=student" },
             { icon: Building2, emoji: "🏢", title: "Employers", desc: "Search and filter candidates using ERS and certification signals.", cta: "Join as Employer", path: "/signup?role=hr" },
-            { icon: University, emoji: "🏛️", title: "Universities", desc: "Track student readiness and cohort analytics.", cta: "Partner as University", path: "/signup?role=university" },
+            { icon: University, emoji: "🏛️", title: "Universities", desc: "Track student readiness and view cohort analytics.", cta: "Partner as University", path: "/signup?role=university" },
           ].map((r, i) => (
             <motion.div key={r.title} className="rounded-xl border bg-card p-6 shadow-sm flex flex-col h-full" {...fadeUp} transition={{ delay: i * 0.1 }}>
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 mb-4">
