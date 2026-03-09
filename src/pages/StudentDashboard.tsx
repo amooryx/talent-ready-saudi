@@ -121,7 +121,7 @@ const StudentDashboard = ({ user: authUser }: StudentDashboardProps) => {
   }, [authUser.id, toast, loadDashboard]);
 
   const handleInterviewResponse = async (id: string, response: "accepted" | "declined") => {
-    await supabase.from("interview_requests").update({ status: response, student_response: response, updated_at: new Date().toISOString() }).eq("id", id);
+    await untypedTable("interview_requests").update({ status: response, student_response: response, updated_at: new Date().toISOString() }).eq("id", id);
     toast({ title: `Interview ${response}` });
     loadDashboard();
   };
