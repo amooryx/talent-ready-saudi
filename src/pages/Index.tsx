@@ -197,7 +197,7 @@ const Index = () => {
               Students can see their ranking by major, university, and region based on their ERS score.
             </p>
             <p className="text-sm text-muted-foreground">
-              Encouraging students to improve skills, earn certifications, and climb the rankings.
+              Encourage students to improve their skills, certifications, and readiness.
             </p>
             <Button variant="outline" className="mt-6" onClick={() => navigate("/leaderboard")}>
               View Leaderboard <ArrowRight className="ml-2 h-4 w-4" />
