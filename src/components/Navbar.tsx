@@ -49,7 +49,7 @@ const Navbar = ({ user, onLogout }: NavbarProps) => {
 
         {/* Desktop */}
         <div className="hidden md:flex items-center gap-6">
-          {anchorLinks.map(link => (
+          {!user && anchorLinks.map(link => (
             <button
               key={link.href}
               onClick={() => handleAnchorClick(link.href)}
