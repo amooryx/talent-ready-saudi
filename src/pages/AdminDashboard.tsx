@@ -169,6 +169,11 @@ const AdminDashboard = ({ user: authUser }: AdminDashboardProps) => {
           </div>
         </TabsContent>
 
+        {/* Market Intelligence */}
+        <TabsContent value="market">
+          <MarketIntelligenceDashboard />
+        </TabsContent>
+
         {/* Verifications */}
         <TabsContent value="verify">
           <div className="rounded-xl border bg-card p-6">
