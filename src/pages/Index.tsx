@@ -91,7 +91,7 @@ const Index = () => {
           {[
             { icon: University, text: "Universities measure grades — but not job readiness." },
             { icon: Building2, text: "Employers lack reliable signals about graduate capability." },
-            { icon: GraduationCap, text: "Students don't know how ready they are for the job market." },
+            { icon: GraduationCap, text: "Students cannot see how ready they are for the job market." },
           ].map((item, i) => (
             <motion.div key={i} className="rounded-xl border bg-card p-6 text-center shadow-sm" {...fadeUp} transition={{ delay: i * 0.1 }}>
               <item.icon className="h-8 w-8 text-primary mx-auto mb-3" />
