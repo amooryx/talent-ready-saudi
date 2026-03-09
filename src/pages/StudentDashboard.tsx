@@ -116,11 +116,13 @@ const StudentDashboard = ({ user: authUser }: StudentDashboardProps) => {
       </div>
 
       <Tabs defaultValue="ers" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
           <TabsTrigger value="ers"><Target className="h-4 w-4 mr-1 hidden sm:inline" />ERS</TabsTrigger>
           <TabsTrigger value="leaderboard"><Trophy className="h-4 w-4 mr-1 hidden sm:inline" />Leaderboard</TabsTrigger>
           <TabsTrigger value="skills"><TrendingUp className="h-4 w-4 mr-1 hidden sm:inline" />Skills</TabsTrigger>
           <TabsTrigger value="uploads"><Upload className="h-4 w-4 mr-1 hidden sm:inline" />Documents</TabsTrigger>
+          <TabsTrigger value="roadmap"><Map className="h-4 w-4 mr-1 hidden sm:inline" />Roadmap</TabsTrigger>
+          <TabsTrigger value="jobs"><Briefcase className="h-4 w-4 mr-1 hidden sm:inline" />Jobs</TabsTrigger>
         </TabsList>
 
         {/* ERS Tab - Explainable Breakdown */}
