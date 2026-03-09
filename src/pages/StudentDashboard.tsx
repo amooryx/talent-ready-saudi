@@ -39,6 +39,9 @@ const StudentDashboard = ({ user: authUser }: StudentDashboardProps) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [jobCache, setJobCache] = useState<any[]>([]);
   const [certCatalog, setCertCatalog] = useState<any[]>([]);
+  const [badges, setBadges] = useState<any[]>([]);
+  const [activityFeed, setActivityFeed] = useState<any[]>([]);
+  const [jobPostings, setJobPostings] = useState<any[]>([]);
 
   const loadDashboard = useCallback(async () => {
     const [data, { data: interviewData }, { data: notifData }] = await Promise.all([
