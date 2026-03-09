@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { GraduationCap, Building2, University, ShieldCheck, Eye, EyeOff } from "lucide-react";
 import logo from "@/assets/hireqimah-logo.png";
 import { signIn, getDashboardPath, type AppRole } from "@/lib/supabaseAuth";
+import { loginSchema } from "@/lib/inputValidation";
 
 type LoginRole = "student" | "hr" | "university" | "admin";
 
@@ -35,8 +36,15 @@ const RoleLogin = ({ role, onLogin }: RoleLoginProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setLoading(true);
 
+    // Validate inputs with Zod
+    const validation = loginSchema.safeParse({ email, password });
+    if (!validation.success) {
+      setError(validation.error.errors[0]?.message || "Invalid input.");
+      return;
+    }
+
+    setLoading(true);
     const result = await signIn(email, password);
     setLoading(false);
 
