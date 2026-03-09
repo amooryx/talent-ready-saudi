@@ -123,7 +123,7 @@ const Index = () => {
       </section>
 
       {/* ───────── STAKEHOLDERS ───────── */}
-      <section className="container py-16 md:py-20">
+      <section id="for-students" className="container py-16 md:py-20">
         <motion.div className="text-center mb-10" {...fadeUp}>
           <h2 className="text-2xl md:text-3xl font-bold font-heading mb-2">Built for the Talent Ecosystem</h2>
         </motion.div>
