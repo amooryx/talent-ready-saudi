@@ -38,7 +38,7 @@ const HRDashboard = ({ user: authUser }: HRDashboardProps) => {
   const [viewingProfile, setViewingProfile] = useState<any>(null);
 
   const loadDashboard = useCallback(async () => {
-    const [{ data: hr }, { data: students }, { data: sl }, { data: majorsList }] = await Promise.all([
+    const [{ data: hr }, { data: students }, { data: sl }, { data: majorsList }, { data: certs }, { data: sCerts }] = await Promise.all([
       supabase.from("hr_profiles").select("*").eq("user_id", authUser.id).single(),
       supabase.from("student_profiles")
         .select("*, profiles!inner(full_name, avatar_url, email, user_id)")
@@ -47,6 +47,8 @@ const HRDashboard = ({ user: authUser }: HRDashboardProps) => {
         .limit(200),
       supabase.from("hr_shortlists").select("*").eq("hr_user_id", authUser.id),
       supabase.from("majors_repository").select("name").order("name"),
+      supabase.from("certification_catalog").select("id, name").order("name"),
+      supabase.from("student_certifications").select("user_id, certification_id, certification_catalog(name)"),
     ]);
 
     setHrProfile(hr);
