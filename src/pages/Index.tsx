@@ -69,11 +69,8 @@ const Index = () => {
                 <Building2 className="h-5 w-5" />Partner as University
               </Button>
             </motion.div>
-            <motion.div className="mt-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55 }}>
-              <Button size="sm" variant="link" className="text-white/60 hover:text-white/90 text-sm" onClick={() => document.getElementById("demo")?.scrollIntoView({ behavior: "smooth" })}>
-                Or explore a demo first <ArrowRight className="ml-1 h-3 w-3" />
-              </Button>
-            </motion.div>
+
+
 
             <motion.p className="mt-6 text-white/50 text-xs tracking-wide uppercase" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }}>
               The first Employment Readiness Infrastructure for Saudi Arabia.
@@ -219,32 +216,8 @@ const Index = () => {
         </div>
       </section>
 
-      {/* ───────── DEMO ACCESS ───────── */}
-      <section id="demo" className="bg-accent/50 py-16 md:py-20">
-        <div className="container max-w-4xl">
-          <motion.div className="text-center mb-10" {...fadeUp}>
-            <h2 className="text-2xl md:text-3xl font-bold font-heading mb-2">Explore the Platform</h2>
-            <p className="text-muted-foreground text-sm">Try the platform using demo accounts.</p>
-          </motion.div>
-          <div className="grid sm:grid-cols-3 gap-6">
-            {[
-              { icon: GraduationCap, emoji: "🎓", title: "Student Demo", email: "abdullah@ksu.edu.sa", password: "Student@12345!", path: "/login/student" },
-              { icon: Building2, emoji: "🏢", title: "Employer Demo", email: "hr@aramco.com", password: "Company@12345!", path: "/login/hr" },
-              { icon: University, emoji: "🏛️", title: "University Demo", email: "admin@ksu.edu.sa", password: "University@2026!", path: "/login/university" },
-            ].map((d, i) => (
-              <motion.div key={d.title} className="rounded-xl border bg-card p-6 text-center shadow-sm" {...fadeUp} transition={{ delay: i * 0.1 }}>
-                <d.icon className="h-8 w-8 text-primary mx-auto mb-3" />
-                <h3 className="font-semibold font-heading mb-2">{d.emoji} {d.title}</h3>
-                <p className="text-xs text-muted-foreground mb-1 font-mono">{d.email}</p>
-                <p className="text-xs text-muted-foreground mb-4 font-mono">{d.password}</p>
-                <Button variant="outline" size="sm" className="w-full" onClick={() => navigate(d.path)}>
-                  Try {d.title.split(" ")[0]} Dashboard
-                </Button>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+
+
 
       {/* ───────── FINAL CTA ───────── */}
       <section className="container py-20 md:py-24">
