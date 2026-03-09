@@ -16,7 +16,7 @@ import type { AuthUser } from "@/lib/supabaseAuth";
 import {
   Trophy, Target, Briefcase, Map, Bell, Upload, Award,
   TrendingUp, Star, CheckCircle, Circle, Clock, Info,
-  MessageSquare, Calendar, User, Link as LinkIcon
+  MessageSquare, Calendar, User, Link as LinkIcon, Share2, Copy
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
