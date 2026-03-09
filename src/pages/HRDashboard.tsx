@@ -149,7 +149,7 @@ const HRDashboard = ({ user: authUser }: HRDashboardProps) => {
       recipient_id: messageDialog.user_id,
       content: messageText.trim(),
     });
-    await supabase.from("notifications").insert({
+    await untypedTable("notifications").insert({
       user_id: messageDialog.user_id,
       type: "message",
       title: "New Message",

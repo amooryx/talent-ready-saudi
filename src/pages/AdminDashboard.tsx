@@ -43,7 +43,7 @@ const AdminDashboard = ({ user: authUser }: AdminDashboardProps) => {
       supabase.from("audit_logs").select("*").order("created_at", { ascending: false }).limit(50),
       supabase.from("user_roles").select("role"),
       supabase.from("document_integrity").select("*, profiles:user_id(full_name)").eq("flag", "REVIEW_REQUIRED").limit(20),
-      supabase.from("interview_requests").select("*", { count: "exact", head: true }),
+      untypedTable("interview_requests").select("*", { count: "exact", head: true }),
     ]);
 
     const roleCounts = (rolesData || []).reduce((acc: Record<string, number>, r: any) => {

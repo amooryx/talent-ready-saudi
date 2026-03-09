@@ -129,7 +129,7 @@ const StudentDashboard = ({ user: authUser }: StudentDashboardProps) => {
   const markNotificationsRead = async () => {
     const unreadIds = notifications.filter(n => !n.read).map(n => n.id);
     if (unreadIds.length === 0) return;
-    await supabase.from("notifications").update({ read: true }).in("id", unreadIds);
+    await untypedTable("notifications").update({ read: true }).in("id", unreadIds);
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
     setUnreadCount(0);
   };
