@@ -183,6 +183,9 @@ const HRDashboard = ({ user: authUser }: HRDashboardProps) => {
                       <Button size="sm" variant="outline" onClick={() => setViewingProfile(s)}>
                         <Eye className="h-4 w-4" />
                       </Button>
+                      <Button size="sm" variant="outline" onClick={() => handleInterviewRequest(s.user_id, s.profiles?.full_name || "Student")}>
+                        <Briefcase className="h-4 w-4" />
+                      </Button>
                     </div>
                   </motion.div>
                 );
