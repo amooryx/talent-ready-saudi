@@ -43,8 +43,8 @@ const StudentDashboard = ({ user: authUser }: StudentDashboardProps) => {
   const loadDashboard = useCallback(async () => {
     const [data, { data: interviewData }, { data: notifData }] = await Promise.all([
       fetchStudentDashboard(authUser.id),
-      supabase.from("interview_requests").select("*").eq("student_user_id", authUser.id).order("created_at", { ascending: false }),
-      supabase.from("notifications").select("*").eq("user_id", authUser.id).order("created_at", { ascending: false }).limit(20),
+      untypedTable("interview_requests").select("*").eq("student_user_id", authUser.id).order("created_at", { ascending: false }),
+      untypedTable("notifications").select("*").eq("user_id", authUser.id).order("created_at", { ascending: false }).limit(20),
     ]);
     setDashData(data);
     setOnboardingComplete(data.studentProfile?.onboarding_completed || false);
