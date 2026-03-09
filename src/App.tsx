@@ -15,6 +15,7 @@ import ResetPassword from "./pages/ResetPassword";
 import StudentDashboard from "./pages/StudentDashboard";
 import HRDashboard from "./pages/HRDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import UniversityDashboard from "./pages/UniversityDashboard";
 import AccessDenied from "./components/AccessDenied";
 import NotFound from "./pages/NotFound";
 import Privacy from "./pages/Privacy";
