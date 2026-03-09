@@ -157,7 +157,7 @@ const Index = () => {
             <BarChart3 className="h-10 w-10 text-primary mx-auto mb-4" />
             <h2 className="text-2xl md:text-3xl font-bold font-heading mb-3">What is ERS?</h2>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              ERS (Employment Readiness Score) is HireQimah's standardized system for measuring job readiness using verified academic, certification, and project data.
+              ERS (Employment Readiness Score) is HireQimah's standardized system for measuring job readiness using verified academic records, certifications, and project data.
             </p>
             <Button variant="link" className="text-primary" onClick={() => navigate("/ers-methodology")}>
               Learn how ERS is calculated <ArrowRight className="ml-1 h-4 w-4" />
