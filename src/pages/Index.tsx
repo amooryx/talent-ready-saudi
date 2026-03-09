@@ -110,7 +110,7 @@ const Index = () => {
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
             {[
               { step: "1", icon: BookOpen, title: "Build Your Profile", desc: "Upload transcripts, certifications, and projects." },
-              { step: "2", icon: BarChart3, title: "Get Your ERS Score", desc: "Our system calculates your Employment Readiness Score." },
+              { step: "2", icon: BarChart3, title: "Get Your ERS Score", desc: "The platform calculates your Employment Readiness Score." },
               { step: "3", icon: Map, title: "Improve Your Readiness", desc: "Receive AI-powered certification and career roadmaps." },
               { step: "4", icon: Briefcase, title: "Get Discovered", desc: "Employers search and shortlist top-ranked students." },
             ].map((s, i) => (
