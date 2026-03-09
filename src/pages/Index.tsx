@@ -69,11 +69,8 @@ const Index = () => {
                 <Building2 className="h-5 w-5" />Partner as University
               </Button>
             </motion.div>
-            <motion.div className="mt-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55 }}>
-              <Button size="sm" variant="link" className="text-white/60 hover:text-white/90 text-sm" onClick={() => document.getElementById("demo")?.scrollIntoView({ behavior: "smooth" })}>
-                Or explore a demo first <ArrowRight className="ml-1 h-3 w-3" />
-              </Button>
-            </motion.div>
+
+
 
             <motion.p className="mt-6 text-white/50 text-xs tracking-wide uppercase" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }}>
               The first Employment Readiness Infrastructure for Saudi Arabia.
