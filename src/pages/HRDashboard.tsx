@@ -61,8 +61,8 @@ const HRDashboard = ({ user: authUser }: HRDashboardProps) => {
       supabase.from("majors_repository").select("name").order("name"),
       supabase.from("certification_catalog").select("id, name").order("name"),
       supabase.from("student_certifications").select("user_id, certification_id, certification_catalog(name)"),
-      supabase.from("interview_requests").select("*").eq("hr_user_id", authUser.id).order("created_at", { ascending: false }),
-      supabase.from("notifications").select("*").eq("user_id", authUser.id).order("created_at", { ascending: false }).limit(20),
+      untypedTable("interview_requests").select("*").eq("hr_user_id", authUser.id).order("created_at", { ascending: false }),
+      untypedTable("notifications").select("*").eq("user_id", authUser.id).order("created_at", { ascending: false }).limit(20),
     ]);
 
     setHrProfile(hr);
