@@ -181,6 +181,7 @@ const HRDashboard = ({ user: authUser }: HRDashboardProps) => {
     loadDashboard();
   };
 
+  if (loading) {
     return (
       <div className="container py-6 space-y-6">
         <Skeleton className="h-8 w-64" />
