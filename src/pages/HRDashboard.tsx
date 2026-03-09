@@ -164,8 +164,23 @@ const HRDashboard = ({ user: authUser }: HRDashboardProps) => {
     setMessageDialog(null);
     setMessageText("");
   };
+  const createJobPosting = async () => {
+    await untypedTable("job_postings").insert({
+      hr_user_id: authUser.id,
+      title: jobForm.title,
+      company: hrProfile?.company_name || "",
+      description: jobForm.description || null,
+      location: jobForm.location,
+      sector: jobForm.sector || null,
+      required_skills: jobForm.required_skills ? jobForm.required_skills.split(",").map((s: string) => s.trim()).filter(Boolean) : [],
+      min_ers_score: jobForm.min_ers_score ? parseInt(jobForm.min_ers_score) : 0,
+    });
+    toast({ title: "Job posting created" });
+    setShowJobForm(false);
+    setJobForm({ title: "", description: "", location: "Saudi Arabia", sector: "", required_skills: "", min_ers_score: "" });
+    loadDashboard();
+  };
 
-  if (loading) {
     return (
       <div className="container py-6 space-y-6">
         <Skeleton className="h-8 w-64" />
