@@ -51,7 +51,7 @@ const StudentDashboard = ({ user: authUser }: StudentDashboardProps) => {
     fetchLeaderboard(filter).then(setLeaderboard);
   }, [leaderFilter, dashData?.studentProfile]);
 
-  const handleFileUpload = useCallback((type: "transcript" | "certificate") => {
+  const handleFileUpload = useCallback((type: "transcript" | "certificate" | "project") => {
     const input = document.createElement("input");
     input.type = "file";
     input.accept = ".pdf,.png,.jpg,.jpeg";
@@ -68,12 +68,25 @@ const StudentDashboard = ({ user: authUser }: StudentDashboardProps) => {
 
       if (type === "transcript") {
         await supabase.from("transcript_uploads").insert({ user_id: authUser.id, file_path: path });
+      } else if (type === "project") {
+        const title = file.name.replace(/\.[^.]+$/, "");
+        await supabase.from("student_projects").insert({ user_id: authUser.id, title, file_path: path });
       }
       toast({ title: "Uploaded", description: `${type} uploaded successfully. Pending verification.` });
       loadDashboard();
     };
     input.click();
   }, [authUser.id, toast, loadDashboard]);
+
+  // Fetch job market data and cert catalog for roadmap/jobs tabs
+  const [jobCache, setJobCache] = useState<any[]>([]);
+  const [certCatalog, setCertCatalog] = useState<any[]>([]);
+  useEffect(() => {
+    supabase.from("job_cache").select("*").order("fetched_at", { ascending: false }).limit(50)
+      .then(({ data }) => setJobCache(data || []));
+    supabase.from("certification_catalog").select("*").order("category")
+      .then(({ data }) => setCertCatalog(data || []));
+  }, []);
 
   if (loading) {
     return (
