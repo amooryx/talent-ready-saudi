@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_feed: {
+        Row: {
+          activity_type: string
+          created_at: string
+          detail: string | null
+          id: string
+          title: string
+          university: string | null
+          user_id: string
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          detail?: string | null
+          id?: string
+          title: string
+          university?: string | null
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          detail?: string | null
+          id?: string
+          title?: string
+          university?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -362,6 +392,57 @@ export type Database = {
         }
         Relationships: []
       }
+      job_postings: {
+        Row: {
+          company: string | null
+          created_at: string
+          description: string | null
+          experience_level: string | null
+          expires_at: string | null
+          hr_user_id: string
+          id: string
+          is_active: boolean
+          location: string | null
+          min_ers_score: number | null
+          required_certifications: string[] | null
+          required_skills: string[] | null
+          sector: string | null
+          title: string
+        }
+        Insert: {
+          company?: string | null
+          created_at?: string
+          description?: string | null
+          experience_level?: string | null
+          expires_at?: string | null
+          hr_user_id: string
+          id?: string
+          is_active?: boolean
+          location?: string | null
+          min_ers_score?: number | null
+          required_certifications?: string[] | null
+          required_skills?: string[] | null
+          sector?: string | null
+          title: string
+        }
+        Update: {
+          company?: string | null
+          created_at?: string
+          description?: string | null
+          experience_level?: string | null
+          expires_at?: string | null
+          hr_user_id?: string
+          id?: string
+          is_active?: boolean
+          location?: string | null
+          min_ers_score?: number | null
+          required_certifications?: string[] | null
+          required_skills?: string[] | null
+          sector?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
       majors_repository: {
         Row: {
           created_at: string
@@ -445,6 +526,33 @@ export type Database = {
           nationality?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      referrals: {
+        Row: {
+          created_at: string
+          id: string
+          referred_email: string
+          referred_user_id: string | null
+          referrer_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          referred_email: string
+          referred_user_id?: string | null
+          referrer_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          referred_email?: string
+          referred_user_id?: string | null
+          referrer_id?: string
+          status?: string
         }
         Relationships: []
       }
@@ -576,6 +684,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      student_badges: {
+        Row: {
+          badge_icon: string | null
+          badge_key: string
+          badge_label: string
+          earned_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          badge_icon?: string | null
+          badge_key: string
+          badge_label: string
+          earned_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          badge_icon?: string | null
+          badge_key?: string
+          badge_label?: string
+          earned_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       student_certifications: {
         Row: {

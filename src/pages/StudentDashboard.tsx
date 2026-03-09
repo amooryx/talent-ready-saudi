@@ -16,7 +16,7 @@ import type { AuthUser } from "@/lib/supabaseAuth";
 import {
   Trophy, Target, Briefcase, Map, Bell, Upload, Award,
   TrendingUp, Star, CheckCircle, Circle, Clock, Info,
-  MessageSquare, Calendar, User, Link as LinkIcon
+  MessageSquare, Calendar, User, Link as LinkIcon, Share2, Copy
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -39,6 +39,9 @@ const StudentDashboard = ({ user: authUser }: StudentDashboardProps) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [jobCache, setJobCache] = useState<any[]>([]);
   const [certCatalog, setCertCatalog] = useState<any[]>([]);
+  const [badges, setBadges] = useState<any[]>([]);
+  const [activityFeed, setActivityFeed] = useState<any[]>([]);
+  const [jobPostings, setJobPostings] = useState<any[]>([]);
 
   const loadDashboard = useCallback(async () => {
     const [data, { data: interviewData }, { data: notifData }] = await Promise.all([
@@ -87,7 +90,13 @@ const StudentDashboard = ({ user: authUser }: StudentDashboardProps) => {
       .then(({ data }) => setJobCache(data || []));
     supabase.from("certification_catalog").select("*").order("category")
       .then(({ data }) => setCertCatalog(data || []));
-  }, []);
+    untypedTable("student_badges").select("*").eq("user_id", authUser.id).order("earned_at", { ascending: false })
+      .then(({ data }: any) => setBadges(data || []));
+    untypedTable("activity_feed").select("*").order("created_at", { ascending: false }).limit(20)
+      .then(({ data }: any) => setActivityFeed(data || []));
+    untypedTable("job_postings").select("*").eq("is_active", true).order("created_at", { ascending: false }).limit(20)
+      .then(({ data }: any) => setJobPostings(data || []));
+  }, [authUser.id]);
 
   const handleFileUpload = useCallback((type: "transcript" | "certificate" | "project") => {
     const input = document.createElement("input");
@@ -179,6 +188,12 @@ const StudentDashboard = ({ user: authUser }: StudentDashboardProps) => {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <Button variant="outline" size="sm" onClick={() => {
+            navigator.clipboard.writeText(`${window.location.origin}/profile/${authUser.id}`);
+            toast({ title: "Profile link copied!" });
+          }}>
+            <Share2 className="h-4 w-4 mr-1" />Share
+          </Button>
           <div className="text-right">
             <p className="text-xs text-muted-foreground">Profile</p>
             <p className="text-sm font-semibold">{completeness}%</p>
@@ -235,6 +250,16 @@ const StudentDashboard = ({ user: authUser }: StudentDashboardProps) => {
                 <Badge className="mt-1 bg-[hsl(var(--gold))]/20 text-[hsl(var(--gold))] shadow-[0_0_8px_hsl(var(--gold)/0.3)]">
                   <Star className="h-3 w-3 mr-1" />+{ers.breakdown.nationalReadiness}% National
                 </Badge>
+              )}
+              {/* Badges */}
+              {badges.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {badges.map(b => (
+                    <Badge key={b.id} variant="secondary" className="text-[10px]">
+                      <span className="mr-1">{b.badge_icon}</span>{b.badge_label}
+                    </Badge>
+                  ))}
+                </div>
               )}
               {/* Profile Completeness */}
               <div className="w-full mt-4 border-t pt-4">

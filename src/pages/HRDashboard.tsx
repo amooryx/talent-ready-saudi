@@ -44,13 +44,16 @@ const HRDashboard = ({ user: authUser }: HRDashboardProps) => {
   const [viewingProfile, setViewingProfile] = useState<any>(null);
   const [interviewDialog, setInterviewDialog] = useState<any>(null);
   const [interviewTitle, setInterviewTitle] = useState("");
+  const [jobPostings, setJobPostings] = useState<any[]>([]);
+  const [showJobForm, setShowJobForm] = useState(false);
+  const [jobForm, setJobForm] = useState({ title: "", description: "", location: "Saudi Arabia", sector: "", required_skills: "", min_ers_score: "" });
   const [interviewDesc, setInterviewDesc] = useState("");
   const [messageDialog, setMessageDialog] = useState<any>(null);
   const [messageText, setMessageText] = useState("");
   const [notifications, setNotifications] = useState<any[]>([]);
 
   const loadDashboard = useCallback(async () => {
-    const [{ data: hr }, { data: students }, { data: sl }, { data: majorsList }, { data: certs }, { data: sCerts }, { data: ivs }, { data: notifs }] = await Promise.all([
+    const [{ data: hr }, { data: students }, { data: sl }, { data: majorsList }, { data: certs }, { data: sCerts }, { data: ivs }, { data: jp }, { data: notifs }] = await Promise.all([
       supabase.from("hr_profiles").select("*").eq("user_id", authUser.id).single(),
       supabase.from("student_profiles")
         .select("*, profiles!inner(full_name, avatar_url, email, user_id)")
@@ -62,6 +65,7 @@ const HRDashboard = ({ user: authUser }: HRDashboardProps) => {
       supabase.from("certification_catalog").select("id, name").order("name"),
       supabase.from("student_certifications").select("user_id, certification_id, certification_catalog(name)"),
       untypedTable("interview_requests").select("*").eq("hr_user_id", authUser.id).order("created_at", { ascending: false }),
+      untypedTable("job_postings").select("*").eq("hr_user_id", authUser.id).order("created_at", { ascending: false }),
       untypedTable("notifications").select("*").eq("user_id", authUser.id).order("created_at", { ascending: false }).limit(20),
     ]);
 
@@ -72,6 +76,7 @@ const HRDashboard = ({ user: authUser }: HRDashboardProps) => {
     setCertNames([...new Set((certs || []).map((c: any) => c.name))]);
     setStudentCerts(sCerts || []);
     setInterviews(ivs || []);
+    setJobPostings(jp || []);
     setNotifications(notifs || []);
     setLoading(false);
   }, [authUser.id]);
@@ -159,6 +164,22 @@ const HRDashboard = ({ user: authUser }: HRDashboardProps) => {
     setMessageDialog(null);
     setMessageText("");
   };
+  const createJobPosting = async () => {
+    await untypedTable("job_postings").insert({
+      hr_user_id: authUser.id,
+      title: jobForm.title,
+      company: hrProfile?.company_name || "",
+      description: jobForm.description || null,
+      location: jobForm.location,
+      sector: jobForm.sector || null,
+      required_skills: jobForm.required_skills ? jobForm.required_skills.split(",").map((s: string) => s.trim()).filter(Boolean) : [],
+      min_ers_score: jobForm.min_ers_score ? parseInt(jobForm.min_ers_score) : 0,
+    });
+    toast({ title: "Job posting created" });
+    setShowJobForm(false);
+    setJobForm({ title: "", description: "", location: "Saudi Arabia", sector: "", required_skills: "", min_ers_score: "" });
+    loadDashboard();
+  };
 
   if (loading) {
     return (
@@ -202,9 +223,10 @@ const HRDashboard = ({ user: authUser }: HRDashboardProps) => {
       </div>
 
       <Tabs defaultValue="search" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="search"><Search className="h-4 w-4 mr-1 hidden sm:inline" />Candidates</TabsTrigger>
           <TabsTrigger value="shortlist"><Star className="h-4 w-4 mr-1 hidden sm:inline" />Shortlist</TabsTrigger>
+          <TabsTrigger value="jobs"><Briefcase className="h-4 w-4 mr-1 hidden sm:inline" />Jobs</TabsTrigger>
           <TabsTrigger value="interviews"><Calendar className="h-4 w-4 mr-1 hidden sm:inline" />Interviews</TabsTrigger>
           <TabsTrigger value="analytics"><BarChart3 className="h-4 w-4 mr-1 hidden sm:inline" />Analytics</TabsTrigger>
         </TabsList>
@@ -303,7 +325,60 @@ const HRDashboard = ({ user: authUser }: HRDashboardProps) => {
           </div>
         </TabsContent>
 
-        {/* Interview Pipeline */}
+        {/* Job Postings */}
+        <TabsContent value="jobs">
+          <div className="rounded-xl border bg-card p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold font-heading">Job Postings ({jobPostings.length})</h3>
+              <Button size="sm" onClick={() => setShowJobForm(!showJobForm)}>
+                {showJobForm ? "Cancel" : "+ New Posting"}
+              </Button>
+            </div>
+            {showJobForm && (
+              <div className="rounded-lg border p-4 mb-4 space-y-3">
+                <Input placeholder="Job Title *" value={jobForm.title} onChange={e => setJobForm(f => ({...f, title: e.target.value}))} maxLength={200} />
+                <Textarea placeholder="Job Description" value={jobForm.description} onChange={e => setJobForm(f => ({...f, description: e.target.value}))} maxLength={2000} />
+                <div className="grid sm:grid-cols-3 gap-3">
+                  <Input placeholder="Location" value={jobForm.location} onChange={e => setJobForm(f => ({...f, location: e.target.value}))} />
+                  <Input placeholder="Sector" value={jobForm.sector} onChange={e => setJobForm(f => ({...f, sector: e.target.value}))} />
+                  <Input placeholder="Min ERS" type="number" min={0} max={100} value={jobForm.min_ers_score} onChange={e => setJobForm(f => ({...f, min_ers_score: e.target.value}))} />
+                </div>
+                <Input placeholder="Required Skills (comma-separated)" value={jobForm.required_skills} onChange={e => setJobForm(f => ({...f, required_skills: e.target.value}))} />
+                <Button onClick={createJobPosting} disabled={!jobForm.title.trim()}>
+                  <Send className="h-4 w-4 mr-1" />Publish Job
+                </Button>
+              </div>
+            )}
+            {jobPostings.length === 0 && !showJobForm ? (
+              <p className="text-sm text-muted-foreground text-center py-8">No job postings yet. Create one to find matching candidates.</p>
+            ) : (
+              <div className="space-y-3">
+                {jobPostings.map((jp: any, i: number) => (
+                  <motion.div key={jp.id} className="rounded-lg border p-4"
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.05 }}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-sm">{jp.title}</p>
+                          <Badge variant={jp.is_active ? "default" : "outline"} className="text-[10px]">{jp.is_active ? "Active" : "Closed"}</Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground">{jp.company || "—"} · {jp.location} · {jp.sector || "General"}</p>
+                        {jp.min_ers_score > 0 && <p className="text-xs text-muted-foreground">Min ERS: {jp.min_ers_score}</p>}
+                        {jp.required_skills?.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {jp.required_skills.map((s: string) => <Badge key={s} variant="secondary" className="text-[10px]">{s}</Badge>)}
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">{new Date(jp.created_at).toLocaleDateString()}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </div>
+        </TabsContent>
+
         <TabsContent value="interviews">
           <div className="rounded-xl border bg-card p-6">
             <h3 className="text-lg font-semibold font-heading mb-4">Interview Pipeline ({interviews.length})</h3>
