@@ -15,6 +15,7 @@ import ResetPassword from "./pages/ResetPassword";
 import StudentDashboard from "./pages/StudentDashboard";
 import HRDashboard from "./pages/HRDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import UniversityDashboard from "./pages/UniversityDashboard";
 import AccessDenied from "./components/AccessDenied";
 import NotFound from "./pages/NotFound";
 import Privacy from "./pages/Privacy";
@@ -114,7 +115,7 @@ const App = () => {
     setUser(null);
   };
 
-  const effectiveRole: AppRole | null = user ? (user.role === "university" ? "admin" : user.role) : null;
+  const effectiveRole: AppRole | null = user ? user.role : null;
 
   if (!checked) return null;
 
@@ -152,6 +153,7 @@ const App = () => {
             {/* Protected dashboards with strict role checks */}
             <Route path="/student" element={effectiveRole === "student" ? <StudentDashboard user={user!} /> : user ? <AccessDenied /> : <Navigate to="/login/student" />} />
             <Route path="/hr" element={effectiveRole === "hr" ? <HRDashboard user={user!} /> : user ? <AccessDenied /> : <Navigate to="/login/hr" />} />
+            <Route path="/university" element={effectiveRole === "university" ? <UniversityDashboard user={user!} /> : user ? <AccessDenied /> : <Navigate to="/login/university" />} />
             <Route path="/admin" element={effectiveRole === "admin" ? <AdminDashboard user={user!} /> : user ? <AccessDenied /> : <Navigate to="/admin/login" />} />
 
             <Route path="/privacy" element={<Privacy />} />

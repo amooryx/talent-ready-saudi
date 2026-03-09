@@ -31,11 +31,14 @@ const HRDashboard = ({ user: authUser }: HRDashboardProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [minERS, setMinERS] = useState("");
   const [filterMajor, setFilterMajor] = useState("all");
+  const [filterCert, setFilterCert] = useState("all");
   const [majors, setMajors] = useState<string[]>([]);
+  const [certNames, setCertNames] = useState<string[]>([]);
+  const [studentCerts, setStudentCerts] = useState<any[]>([]);
   const [viewingProfile, setViewingProfile] = useState<any>(null);
 
   const loadDashboard = useCallback(async () => {
-    const [{ data: hr }, { data: students }, { data: sl }, { data: majorsList }] = await Promise.all([
+    const [{ data: hr }, { data: students }, { data: sl }, { data: majorsList }, { data: certs }, { data: sCerts }] = await Promise.all([
       supabase.from("hr_profiles").select("*").eq("user_id", authUser.id).single(),
       supabase.from("student_profiles")
         .select("*, profiles!inner(full_name, avatar_url, email, user_id)")
@@ -44,12 +47,16 @@ const HRDashboard = ({ user: authUser }: HRDashboardProps) => {
         .limit(200),
       supabase.from("hr_shortlists").select("*").eq("hr_user_id", authUser.id),
       supabase.from("majors_repository").select("name").order("name"),
+      supabase.from("certification_catalog").select("id, name").order("name"),
+      supabase.from("student_certifications").select("user_id, certification_id, certification_catalog(name)"),
     ]);
 
     setHrProfile(hr);
     setCandidates(students || []);
     setShortlists(sl || []);
     setMajors([...new Set((majorsList || []).map((m: any) => m.name))]);
+    setCertNames([...new Set((certs || []).map((c: any) => c.name))]);
+    setStudentCerts(sCerts || []);
     setLoading(false);
   }, [authUser.id]);
 
@@ -68,6 +75,17 @@ const HRDashboard = ({ user: authUser }: HRDashboardProps) => {
     setShortlists(sl || []);
   };
 
+  const handleInterviewRequest = async (studentUserId: string, studentName: string) => {
+    await supabase.from("audit_logs").insert({
+      user_id: authUser.id,
+      action: "interview_requested",
+      resource_type: "student",
+      resource_id: studentUserId,
+      details: { student_name: studentName, hr_company: hrProfile?.company_name },
+    });
+    toast({ title: "Interview Requested", description: `Request sent for ${studentName}.` });
+  };
+
   if (loading) {
     return (
       <div className="container py-6 space-y-6">
@@ -84,6 +102,10 @@ const HRDashboard = ({ user: authUser }: HRDashboardProps) => {
     if (searchQuery && !s.profiles?.full_name?.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     if (minERS && (s.ers_score || 0) < parseInt(minERS)) return false;
     if (filterMajor !== "all" && s.major !== filterMajor) return false;
+    if (filterCert !== "all") {
+      const hasCert = studentCerts.some(sc => sc.user_id === s.user_id && (sc as any).certification_catalog?.name === filterCert);
+      if (!hasCert) return false;
+    }
     return true;
   });
 
@@ -115,7 +137,7 @@ const HRDashboard = ({ user: authUser }: HRDashboardProps) => {
 
         <TabsContent value="search">
           <div className="rounded-xl border bg-card p-6">
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input placeholder="Search by name..." className="pl-9" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} maxLength={100} />
@@ -126,6 +148,13 @@ const HRDashboard = ({ user: authUser }: HRDashboardProps) => {
                 <SelectContent className="max-h-60">
                   <SelectItem value="all">All Majors</SelectItem>
                   {majors.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select value={filterCert} onValueChange={setFilterCert}>
+                <SelectTrigger><SelectValue placeholder="Certification" /></SelectTrigger>
+                <SelectContent className="max-h-60">
+                  <SelectItem value="all">All Certifications</SelectItem>
+                  {certNames.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                 </SelectContent>
               </Select>
               <div className="text-sm text-muted-foreground flex items-center">{filtered.length} candidates</div>
@@ -153,6 +182,9 @@ const HRDashboard = ({ user: authUser }: HRDashboardProps) => {
                       </Button>
                       <Button size="sm" variant="outline" onClick={() => setViewingProfile(s)}>
                         <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => handleInterviewRequest(s.user_id, s.profiles?.full_name || "Student")}>
+                        <Briefcase className="h-4 w-4" />
                       </Button>
                     </div>
                   </motion.div>
