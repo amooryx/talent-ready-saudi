@@ -101,7 +101,7 @@ const HRDashboard = ({ user: authUser }: HRDashboardProps) => {
     } else {
       await supabase.from("hr_shortlists").insert({ hr_user_id: authUser.id, student_user_id: studentUserId });
       // Notify student
-      await supabase.from("notifications").insert({
+      await untypedTable("notifications").insert({
         user_id: studentUserId,
         type: "shortlisted",
         title: "You've been shortlisted!",
