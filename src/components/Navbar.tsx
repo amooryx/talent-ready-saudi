@@ -89,7 +89,7 @@ const Navbar = ({ user, onLogout }: NavbarProps) => {
 
       {mobileOpen && (
         <div className="md:hidden border-t bg-card p-4 space-y-3">
-          {anchorLinks.map(link => (
+          {!user && anchorLinks.map(link => (
             <button key={link.href} onClick={() => handleAnchorClick(link.href)} className="block text-sm font-medium text-muted-foreground hover:text-primary">
               {link.label}
             </button>
