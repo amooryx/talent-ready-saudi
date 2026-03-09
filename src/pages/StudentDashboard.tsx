@@ -277,17 +277,19 @@ const StudentDashboard = ({ user: authUser }: StudentDashboardProps) => {
         <TabsContent value="uploads">
           <div className="rounded-xl border bg-card p-6">
             <h3 className="text-lg font-semibold font-heading mb-4">Upload Documents</h3>
-            <div className="grid sm:grid-cols-2 gap-3">
+            <div className="grid sm:grid-cols-3 gap-3">
               <Button variant="outline" className="h-20 border-dashed" onClick={() => handleFileUpload("transcript")}>
-                <Upload className="h-5 w-5 mr-2" /> Upload Transcript (PDF)
+                <Upload className="h-5 w-5 mr-2" /> Upload Transcript
               </Button>
               <Button variant="outline" className="h-20 border-dashed" onClick={() => handleFileUpload("certificate")}>
                 <Upload className="h-5 w-5 mr-2" /> Upload Certificate
               </Button>
+              <Button variant="outline" className="h-20 border-dashed" onClick={() => handleFileUpload("project")}>
+                <Upload className="h-5 w-5 mr-2" /> Upload Project
+              </Button>
             </div>
             <p className="text-xs text-muted-foreground mt-2">Accepted: PDF, PNG, JPEG · Max 10 MB</p>
 
-            {/* Projects list */}
             <h4 className="font-semibold mt-6 mb-3">Projects</h4>
             {dashData?.projects?.length > 0 ? (
               <div className="space-y-2">
@@ -303,6 +305,72 @@ const StudentDashboard = ({ user: authUser }: StudentDashboardProps) => {
                 ))}
               </div>
             ) : <p className="text-sm text-muted-foreground">No projects yet.</p>}
+          </div>
+        </TabsContent>
+
+        {/* Certification Roadmap */}
+        <TabsContent value="roadmap">
+          <div className="rounded-xl border bg-card p-6">
+            <h3 className="text-lg font-semibold font-heading mb-2">Certification Roadmap</h3>
+            <p className="text-sm text-muted-foreground mb-4">Recommended certifications based on your major and career target.</p>
+            {certCatalog.length > 0 ? (
+              <div className="space-y-3">
+                {certCatalog.map((cert: any) => {
+                  const earned = dashData?.certifications?.some((c: any) => c.certification_id === cert.id);
+                  return (
+                    <div key={cert.id} className={`flex items-center gap-4 rounded-lg border p-4 ${earned ? "bg-[hsl(var(--success))]/5 border-[hsl(var(--success))]/20" : ""}`}>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium">{cert.name}</p>
+                          {earned && <Badge className="text-[10px] bg-[hsl(var(--success))]/10 text-[hsl(var(--success))]">Earned</Badge>}
+                          {cert.is_hadaf_reimbursed && <Badge variant="outline" className="text-[10px]">🇸🇦 Hadaf</Badge>}
+                        </div>
+                        <p className="text-xs text-muted-foreground">{cert.category} · Weight: {cert.weight} · {cert.sector || "General"}</p>
+                        {cert.description && <p className="text-xs text-muted-foreground mt-1">{cert.description}</p>}
+                      </div>
+                      <div className="text-right">
+                        <p className="text-lg font-bold text-primary">+{cert.weight}</p>
+                        <p className="text-[10px] text-muted-foreground">ERS pts</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : <p className="text-sm text-muted-foreground text-center py-8">No certification data available.</p>}
+          </div>
+        </TabsContent>
+
+        {/* Job Market Insights */}
+        <TabsContent value="jobs">
+          <div className="rounded-xl border bg-card p-6">
+            <h3 className="text-lg font-semibold font-heading mb-2">Job Market Insights</h3>
+            <p className="text-sm text-muted-foreground mb-4">Live job postings from the Saudi market relevant to your profile.</p>
+            {jobCache.length > 0 ? (
+              <div className="space-y-3">
+                {jobCache.map((job: any) => (
+                  <div key={job.id} className="rounded-lg border p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-medium">{job.title}</p>
+                        <p className="text-xs text-muted-foreground">{job.company || "—"} · {job.location} · {job.sector}</p>
+                        {job.experience_level && <Badge variant="outline" className="text-[10px] mt-1">{job.experience_level}</Badge>}
+                      </div>
+                      {job.source_url && (
+                        <a href={job.source_url} target="_blank" rel="noopener noreferrer">
+                          <Button size="sm" variant="outline">View</Button>
+                        </a>
+                      )}
+                    </div>
+                    {(job.required_skills?.length > 0 || job.required_certifications?.length > 0) && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {job.required_skills?.map((s: string) => <Badge key={s} variant="secondary" className="text-[10px]">{s}</Badge>)}
+                        {job.required_certifications?.map((c: string) => <Badge key={c} className="text-[10px] bg-primary/10 text-primary">{c}</Badge>)}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : <p className="text-sm text-muted-foreground text-center py-8">No job data available yet. Check back soon.</p>}
           </div>
         </TabsContent>
       </Tabs>
