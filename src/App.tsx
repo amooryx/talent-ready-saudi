@@ -115,7 +115,7 @@ const App = () => {
     setUser(null);
   };
 
-  const effectiveRole: AppRole | null = user ? (user.role === "university" ? "admin" : user.role) : null;
+  const effectiveRole: AppRole | null = user ? user.role : null;
 
   if (!checked) return null;
 
