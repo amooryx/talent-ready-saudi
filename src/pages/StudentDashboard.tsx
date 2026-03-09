@@ -90,7 +90,13 @@ const StudentDashboard = ({ user: authUser }: StudentDashboardProps) => {
       .then(({ data }) => setJobCache(data || []));
     supabase.from("certification_catalog").select("*").order("category")
       .then(({ data }) => setCertCatalog(data || []));
-  }, []);
+    untypedTable("student_badges").select("*").eq("user_id", authUser.id).order("earned_at", { ascending: false })
+      .then(({ data }: any) => setBadges(data || []));
+    untypedTable("activity_feed").select("*").order("created_at", { ascending: false }).limit(20)
+      .then(({ data }: any) => setActivityFeed(data || []));
+    untypedTable("job_postings").select("*").eq("is_active", true).order("created_at", { ascending: false }).limit(20)
+      .then(({ data }: any) => setJobPostings(data || []));
+  }, [authUser.id]);
 
   const handleFileUpload = useCallback((type: "transcript" | "certificate" | "project") => {
     const input = document.createElement("input");
