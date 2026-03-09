@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { GraduationCap, Building2, University, ShieldCheck, Eye, EyeOff } from "lucide-react";
 import logo from "@/assets/hireqimah-logo.png";
 import { signIn, getDashboardPath, type AppRole } from "@/lib/supabaseAuth";
+import { loginSchema } from "@/lib/inputValidation";
 
 type LoginRole = "student" | "hr" | "university" | "admin";
 
