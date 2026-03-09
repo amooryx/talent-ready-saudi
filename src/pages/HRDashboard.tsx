@@ -325,7 +325,60 @@ const HRDashboard = ({ user: authUser }: HRDashboardProps) => {
           </div>
         </TabsContent>
 
-        {/* Interview Pipeline */}
+        {/* Job Postings */}
+        <TabsContent value="jobs">
+          <div className="rounded-xl border bg-card p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold font-heading">Job Postings ({jobPostings.length})</h3>
+              <Button size="sm" onClick={() => setShowJobForm(!showJobForm)}>
+                {showJobForm ? "Cancel" : "+ New Posting"}
+              </Button>
+            </div>
+            {showJobForm && (
+              <div className="rounded-lg border p-4 mb-4 space-y-3">
+                <Input placeholder="Job Title *" value={jobForm.title} onChange={e => setJobForm(f => ({...f, title: e.target.value}))} maxLength={200} />
+                <Textarea placeholder="Job Description" value={jobForm.description} onChange={e => setJobForm(f => ({...f, description: e.target.value}))} maxLength={2000} />
+                <div className="grid sm:grid-cols-3 gap-3">
+                  <Input placeholder="Location" value={jobForm.location} onChange={e => setJobForm(f => ({...f, location: e.target.value}))} />
+                  <Input placeholder="Sector" value={jobForm.sector} onChange={e => setJobForm(f => ({...f, sector: e.target.value}))} />
+                  <Input placeholder="Min ERS" type="number" min={0} max={100} value={jobForm.min_ers_score} onChange={e => setJobForm(f => ({...f, min_ers_score: e.target.value}))} />
+                </div>
+                <Input placeholder="Required Skills (comma-separated)" value={jobForm.required_skills} onChange={e => setJobForm(f => ({...f, required_skills: e.target.value}))} />
+                <Button onClick={createJobPosting} disabled={!jobForm.title.trim()}>
+                  <Send className="h-4 w-4 mr-1" />Publish Job
+                </Button>
+              </div>
+            )}
+            {jobPostings.length === 0 && !showJobForm ? (
+              <p className="text-sm text-muted-foreground text-center py-8">No job postings yet. Create one to find matching candidates.</p>
+            ) : (
+              <div className="space-y-3">
+                {jobPostings.map((jp: any, i: number) => (
+                  <motion.div key={jp.id} className="rounded-lg border p-4"
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.05 }}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-sm">{jp.title}</p>
+                          <Badge variant={jp.is_active ? "default" : "outline"} className="text-[10px]">{jp.is_active ? "Active" : "Closed"}</Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground">{jp.company || "—"} · {jp.location} · {jp.sector || "General"}</p>
+                        {jp.min_ers_score > 0 && <p className="text-xs text-muted-foreground">Min ERS: {jp.min_ers_score}</p>}
+                        {jp.required_skills?.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {jp.required_skills.map((s: string) => <Badge key={s} variant="secondary" className="text-[10px]">{s}</Badge>)}
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">{new Date(jp.created_at).toLocaleDateString()}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </div>
+        </TabsContent>
+
         <TabsContent value="interviews">
           <div className="rounded-xl border bg-card p-6">
             <h3 className="text-lg font-semibold font-heading mb-4">Interview Pipeline ({interviews.length})</h3>
