@@ -158,6 +158,8 @@ const App = () => {
             <Route path="/university" element={effectiveRole === "university" ? <UniversityDashboard user={user!} /> : user ? <AccessDenied /> : <Navigate to="/login/university" />} />
             <Route path="/admin" element={effectiveRole === "admin" ? <AdminDashboard user={user!} /> : user ? <AccessDenied /> : <Navigate to="/admin/login" />} />
 
+            <Route path="/profile/:userId" element={<PublicProfile />} />
+            <Route path="/leaderboard" element={<PublicLeaderboard />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/contact" element={<Contact />} />
