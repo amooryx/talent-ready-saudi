@@ -59,11 +59,19 @@ const Index = () => {
             </motion.div>
 
             <motion.div className="flex flex-wrap gap-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
-              <Button size="lg" className="font-semibold px-8 h-12 text-base" onClick={() => navigate("/auth/select-role?mode=signup")}>
-                Get Started <ArrowRight className="ml-2 h-4 w-4" />
+              <Button size="lg" className="font-semibold px-6 h-12 text-base" onClick={() => navigate("/signup?role=student")}>
+                <GraduationCap className="mr-2 h-5 w-5" />Sign Up as Student
               </Button>
-              <Button size="lg" variant="outline" className="font-semibold px-8 h-12 text-base border-white/30 text-white hover:bg-white/10" onClick={() => document.getElementById("demo")?.scrollIntoView({ behavior: "smooth" })}>
-                Explore Demo
+              <Button size="lg" variant="outline" className="font-semibold px-6 h-12 text-base border-white/30 text-white hover:bg-white/10" onClick={() => navigate("/signup?role=hr")}>
+                <Building2 className="mr-2 h-5 w-5" />Sign Up as HR / Employer
+              </Button>
+              <Button size="lg" variant="outline" className="font-semibold px-6 h-12 text-base border-white/30 text-white hover:bg-white/10" onClick={() => navigate("/signup?role=university")}>
+                <University className="mr-2 h-5 w-5" />Sign Up as University
+              </Button>
+            </motion.div>
+            <motion.div className="mt-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55 }}>
+              <Button size="sm" variant="link" className="text-white/60 hover:text-white/90 text-sm" onClick={() => document.getElementById("demo")?.scrollIntoView({ behavior: "smooth" })}>
+                Or explore a demo first <ArrowRight className="ml-1 h-3 w-3" />
               </Button>
             </motion.div>
 
