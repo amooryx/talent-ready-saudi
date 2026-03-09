@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import StatCard from "@/components/StatCard";
 import { supabase } from "@/integrations/supabase/client";
+import { untypedTable } from "@/lib/untypedTable";
 import type { AuthUser } from "@/lib/supabaseAuth";
 import {
   ShieldCheck, Users, FileCheck, Settings, CheckCircle, XCircle, Clock,
