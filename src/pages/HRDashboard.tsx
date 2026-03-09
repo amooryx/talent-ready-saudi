@@ -31,7 +31,10 @@ const HRDashboard = ({ user: authUser }: HRDashboardProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [minERS, setMinERS] = useState("");
   const [filterMajor, setFilterMajor] = useState("all");
+  const [filterCert, setFilterCert] = useState("all");
   const [majors, setMajors] = useState<string[]>([]);
+  const [certNames, setCertNames] = useState<string[]>([]);
+  const [studentCerts, setStudentCerts] = useState<any[]>([]);
   const [viewingProfile, setViewingProfile] = useState<any>(null);
 
   const loadDashboard = useCallback(async () => {
