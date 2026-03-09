@@ -59,7 +59,7 @@ const Index = () => {
             </motion.div>
 
             <motion.div className="flex flex-wrap gap-4 justify-center sm:justify-start" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
-              <Button size="lg" className="bg-secondary text-secondary-foreground shadow-lg hover:shadow-xl font-semibold px-8 h-12 text-base hover:-translate-y-0.5 transition-all hover:bg-secondary/90" onClick={() => navigate("/signup?role=student")}>
+              <Button size="lg" className="bg-[hsl(207,89%,80%)] text-[hsl(203,79%,10%)] shadow-lg hover:shadow-xl font-semibold px-8 h-12 text-base hover:-translate-y-0.5 transition-all hover:bg-[hsl(207,89%,85%)]" onClick={() => navigate("/signup?role=student")}>
                 <GraduationCap className="h-5 w-5" />Create Student Profile
               </Button>
               <Button size="lg" className="bg-secondary text-secondary-foreground shadow-lg hover:shadow-xl font-semibold px-8 h-12 text-base hover:-translate-y-0.5 transition-all hover:bg-secondary/90" onClick={() => navigate("/signup?role=hr")}>
