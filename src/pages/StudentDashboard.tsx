@@ -188,6 +188,12 @@ const StudentDashboard = ({ user: authUser }: StudentDashboardProps) => {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <Button variant="outline" size="sm" onClick={() => {
+            navigator.clipboard.writeText(`${window.location.origin}/profile/${authUser.id}`);
+            toast({ title: "Profile link copied!" });
+          }}>
+            <Share2 className="h-4 w-4 mr-1" />Share
+          </Button>
           <div className="text-right">
             <p className="text-xs text-muted-foreground">Profile</p>
             <p className="text-sm font-semibold">{completeness}%</p>
