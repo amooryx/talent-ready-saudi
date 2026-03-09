@@ -59,11 +59,19 @@ const Index = () => {
             </motion.div>
 
             <motion.div className="flex flex-wrap gap-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
-              <Button size="lg" className="font-semibold px-8 h-12 text-base" onClick={() => navigate("/auth/select-role?mode=signup")}>
-                Get Started <ArrowRight className="ml-2 h-4 w-4" />
+              <Button size="lg" className="font-semibold px-6 h-12 text-base" onClick={() => navigate("/signup?role=student")}>
+                <GraduationCap className="mr-2 h-5 w-5" />Sign Up as Student
               </Button>
-              <Button size="lg" variant="outline" className="font-semibold px-8 h-12 text-base border-white/30 text-white hover:bg-white/10" onClick={() => document.getElementById("demo")?.scrollIntoView({ behavior: "smooth" })}>
-                Explore Demo
+              <Button size="lg" variant="outline" className="font-semibold px-6 h-12 text-base border-white/30 text-white hover:bg-white/10" onClick={() => navigate("/signup?role=hr")}>
+                <Building2 className="mr-2 h-5 w-5" />Sign Up as HR / Employer
+              </Button>
+              <Button size="lg" variant="outline" className="font-semibold px-6 h-12 text-base border-white/30 text-white hover:bg-white/10" onClick={() => navigate("/signup?role=university")}>
+                <University className="mr-2 h-5 w-5" />Sign Up as University
+              </Button>
+            </motion.div>
+            <motion.div className="mt-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55 }}>
+              <Button size="sm" variant="link" className="text-white/60 hover:text-white/90 text-sm" onClick={() => document.getElementById("demo")?.scrollIntoView({ behavior: "smooth" })}>
+                Or explore a demo first <ArrowRight className="ml-1 h-3 w-3" />
               </Button>
             </motion.div>
 
@@ -83,7 +91,7 @@ const Index = () => {
           {[
             { icon: University, text: "Universities measure grades — but not job readiness." },
             { icon: Building2, text: "Employers lack reliable signals about graduate capability." },
-            { icon: GraduationCap, text: "Students don't know how ready they are for the job market." },
+            { icon: GraduationCap, text: "Students cannot see how ready they are for the job market." },
           ].map((item, i) => (
             <motion.div key={i} className="rounded-xl border bg-card p-6 text-center shadow-sm" {...fadeUp} transition={{ delay: i * 0.1 }}>
               <item.icon className="h-8 w-8 text-primary mx-auto mb-3" />
@@ -102,7 +110,7 @@ const Index = () => {
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
             {[
               { step: "1", icon: BookOpen, title: "Build Your Profile", desc: "Upload transcripts, certifications, and projects." },
-              { step: "2", icon: BarChart3, title: "Get Your ERS Score", desc: "Our system calculates your Employment Readiness Score." },
+              { step: "2", icon: BarChart3, title: "Get Your ERS Score", desc: "The platform calculates your Employment Readiness Score." },
               { step: "3", icon: Map, title: "Improve Your Readiness", desc: "Receive AI-powered certification and career roadmaps." },
               { step: "4", icon: Briefcase, title: "Get Discovered", desc: "Employers search and shortlist top-ranked students." },
             ].map((s, i) => (
@@ -126,7 +134,7 @@ const Index = () => {
           {[
             { icon: GraduationCap, emoji: "🎓", title: "Students", desc: "Build verified employability profiles and track readiness.", cta: "Create Student Profile", path: "/signup?role=student" },
             { icon: Building2, emoji: "🏢", title: "Employers", desc: "Search and filter candidates using ERS and certification signals.", cta: "Join as Employer", path: "/signup?role=hr" },
-            { icon: University, emoji: "🏛️", title: "Universities", desc: "Track student readiness and cohort analytics.", cta: "Partner as University", path: "/signup?role=university" },
+            { icon: University, emoji: "🏛️", title: "Universities", desc: "Track student readiness and view cohort analytics.", cta: "Partner as University", path: "/signup?role=university" },
           ].map((r, i) => (
             <motion.div key={r.title} className="rounded-xl border bg-card p-6 shadow-sm flex flex-col h-full" {...fadeUp} transition={{ delay: i * 0.1 }}>
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 mb-4">
@@ -149,7 +157,7 @@ const Index = () => {
             <BarChart3 className="h-10 w-10 text-primary mx-auto mb-4" />
             <h2 className="text-2xl md:text-3xl font-bold font-heading mb-3">What is ERS?</h2>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              ERS (Employment Readiness Score) is HireQimah's standardized system for measuring job readiness using verified academic, certification, and project data.
+              ERS (Employment Readiness Score) is HireQimah's standardized system for measuring job readiness using verified academic records, certifications, and project data.
             </p>
             <Button variant="link" className="text-primary" onClick={() => navigate("/ers-methodology")}>
               Learn how ERS is calculated <ArrowRight className="ml-1 h-4 w-4" />
@@ -189,7 +197,7 @@ const Index = () => {
               Students can see their ranking by major, university, and region based on their ERS score.
             </p>
             <p className="text-sm text-muted-foreground">
-              Encouraging students to improve skills, earn certifications, and climb the rankings.
+              Encourage students to improve their skills, certifications, and readiness.
             </p>
             <Button variant="outline" className="mt-6" onClick={() => navigate("/leaderboard")}>
               View Leaderboard <ArrowRight className="ml-2 h-4 w-4" />
