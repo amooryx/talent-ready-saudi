@@ -144,7 +144,7 @@ const HRDashboard = ({ user: authUser }: HRDashboardProps) => {
 
   const sendMessage = async () => {
     if (!messageDialog || !messageText.trim()) return;
-    await supabase.from("messages").insert({
+    await untypedTable("messages").insert({
       sender_id: authUser.id,
       recipient_id: messageDialog.user_id,
       content: messageText.trim(),
