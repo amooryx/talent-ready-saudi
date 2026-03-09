@@ -483,35 +483,9 @@ const StudentDashboard = ({ user: authUser }: StudentDashboardProps) => {
           </div>
         </TabsContent>
 
-        {/* Roadmap */}
+        {/* Roadmap - AI Career Intelligence */}
         <TabsContent value="roadmap">
-          <div className="rounded-xl border bg-card p-6">
-            <h3 className="text-lg font-semibold font-heading mb-2">Certification Roadmap</h3>
-            <p className="text-sm text-muted-foreground mb-4">Recommended certifications based on your major and career target.</p>
-            {certCatalog.length > 0 ? (
-              <div className="space-y-3">
-                {certCatalog.map((cert: any) => {
-                  const earned = dashData?.certifications?.some((c: any) => c.certification_id === cert.id);
-                  return (
-                    <div key={cert.id} className={`flex items-center gap-4 rounded-lg border p-4 ${earned ? "bg-[hsl(var(--success))]/5 border-[hsl(var(--success))]/20" : ""}`}>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-medium">{cert.name}</p>
-                          {earned && <Badge className="text-[10px] bg-[hsl(var(--success))]/10 text-[hsl(var(--success))]">Earned</Badge>}
-                          {cert.is_hadaf_reimbursed && <Badge variant="outline" className="text-[10px]">🇸🇦 Hadaf</Badge>}
-                        </div>
-                        <p className="text-xs text-muted-foreground">{cert.category} · Weight: {cert.weight} · {cert.sector || "General"}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-lg font-bold text-primary">+{cert.weight}</p>
-                        <p className="text-[10px] text-muted-foreground">ERS pts</p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : <p className="text-sm text-muted-foreground text-center py-8">No certification data available.</p>}
-          </div>
+          <CareerRoadmap userId={authUser.id} currentCareerTarget={sp?.career_target} />
         </TabsContent>
 
         {/* Jobs */}
