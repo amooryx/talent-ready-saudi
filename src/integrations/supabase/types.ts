@@ -443,6 +443,30 @@ export type Database = {
         }
         Relationships: []
       }
+      login_attempts: {
+        Row: {
+          attempted_at: string
+          email: string
+          id: string
+          ip_address: string | null
+          success: boolean
+        }
+        Insert: {
+          attempted_at?: string
+          email: string
+          id?: string
+          ip_address?: string | null
+          success?: boolean
+        }
+        Update: {
+          attempted_at?: string
+          email?: string
+          id?: string
+          ip_address?: string | null
+          success?: boolean
+        }
+        Relationships: []
+      }
       majors_repository: {
         Row: {
           created_at: string
@@ -1028,6 +1052,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_account_locked: { Args: { p_email: string }; Returns: Json }
+      cleanup_old_login_attempts: { Args: never; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1036,6 +1062,10 @@ export type Database = {
         Returns: boolean
       }
       recalculate_ers: { Args: { p_user_id: string }; Returns: undefined }
+      record_login_attempt: {
+        Args: { p_email: string; p_ip?: string; p_success: boolean }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "student" | "hr" | "university" | "admin"
