@@ -58,15 +58,15 @@ const Index = () => {
               ))}
             </motion.div>
 
-            <motion.div className="flex flex-wrap gap-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
-              <Button size="lg" className="font-semibold px-6 h-12 text-base" onClick={() => navigate("/signup?role=student")}>
+            <motion.div className="flex flex-wrap gap-4 justify-center sm:justify-start" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
+              <Button size="lg" className="font-semibold px-6 h-12 text-base bg-[hsl(217,80%,55%)] hover:bg-[hsl(217,80%,60%)] text-white shadow-lg shadow-[hsl(217,80%,50%)/0.3] hover:-translate-y-0.5 transition-all duration-200" onClick={() => navigate("/signup?role=student")}>
                 <GraduationCap className="mr-2 h-5 w-5" />Sign Up as Student
               </Button>
-              <Button size="lg" variant="outline" className="font-semibold px-6 h-12 text-base border-white/30 text-white hover:bg-white/10" onClick={() => navigate("/signup?role=hr")}>
-                <Building2 className="mr-2 h-5 w-5" />Sign Up as HR / Employer
+              <Button size="lg" className="font-semibold px-6 h-12 text-base bg-[hsl(215,20%,32%)] hover:bg-[hsl(215,20%,38%)] text-white border border-[hsl(215,15%,45%)] hover:-translate-y-0.5 transition-all duration-200" onClick={() => navigate("/signup?role=hr")}>
+                <Building2 className="mr-2 h-5 w-5" />Sign Up as HR
               </Button>
-              <Button size="lg" variant="outline" className="font-semibold px-6 h-12 text-base border-white/30 text-white hover:bg-white/10" onClick={() => navigate("/signup?role=university")}>
-                <University className="mr-2 h-5 w-5" />Sign Up as University
+              <Button size="lg" className="font-semibold px-6 h-12 text-base bg-[hsl(215,20%,25%)] hover:bg-[hsl(215,20%,32%)] text-white border border-[hsl(215,15%,40%)] hover:-translate-y-0.5 transition-all duration-200" onClick={() => navigate("/signup?role=university")}>
+                <University className="mr-2 h-5 w-5" />Register as University
               </Button>
             </motion.div>
             <motion.div className="mt-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55 }}>
