@@ -148,7 +148,7 @@ const Index = () => {
       </section>
 
       {/* ───────── WHAT IS ERS ───────── */}
-      <section className="bg-accent/50 py-16 md:py-20">
+      <section id="for-companies" className="bg-accent/50 py-16 md:py-20">
         <div className="container max-w-3xl text-center">
           <motion.div {...fadeUp}>
             <BarChart3 className="h-10 w-10 text-primary mx-auto mb-4" />
