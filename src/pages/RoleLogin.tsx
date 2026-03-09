@@ -35,6 +35,8 @@ const RoleLogin = ({ role, onLogin }: RoleLoginProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+
     // Validate inputs with Zod
     const validation = loginSchema.safeParse({ email, password });
     if (!validation.success) {
@@ -42,6 +44,7 @@ const RoleLogin = ({ role, onLogin }: RoleLoginProps) => {
       return;
     }
 
+    setLoading(true);
     const result = await signIn(email, password);
     setLoading(false);
 
