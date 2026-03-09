@@ -8,12 +8,14 @@ import ERSGauge from "@/components/ERSGauge";
 import StatCard from "@/components/StatCard";
 import StudentOnboarding from "@/components/StudentOnboarding";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchStudentDashboard, calculateERSFromData, fetchLeaderboard } from "@/lib/supabaseData";
 import type { AuthUser } from "@/lib/supabaseAuth";
 import {
   Trophy, Target, Briefcase, Map, Bell, Upload, Award,
-  TrendingUp, Star, CheckCircle, Circle, Clock, Info
+  TrendingUp, Star, CheckCircle, Circle, Clock, Info,
+  MessageSquare, Calendar, User, Link as LinkIcon
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -31,15 +33,43 @@ const StudentDashboard = ({ user: authUser }: StudentDashboardProps) => {
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [leaderFilter, setLeaderFilter] = useState<"global" | "university" | "major">("global");
   const [onboardingComplete, setOnboardingComplete] = useState<boolean | null>(null);
+  const [interviews, setInterviews] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [jobCache, setJobCache] = useState<any[]>([]);
+  const [certCatalog, setCertCatalog] = useState<any[]>([]);
 
   const loadDashboard = useCallback(async () => {
-    const data = await fetchStudentDashboard(authUser.id);
+    const [data, { data: interviewData }, { data: notifData }] = await Promise.all([
+      fetchStudentDashboard(authUser.id),
+      supabase.from("interview_requests").select("*").eq("student_user_id", authUser.id).order("created_at", { ascending: false }),
+      supabase.from("notifications").select("*").eq("user_id", authUser.id).order("created_at", { ascending: false }).limit(20),
+    ]);
     setDashData(data);
     setOnboardingComplete(data.studentProfile?.onboarding_completed || false);
+    setInterviews(interviewData || []);
+    setNotifications(notifData || []);
+    setUnreadCount((notifData || []).filter((n: any) => !n.read).length);
     setLoading(false);
   }, [authUser.id]);
 
   useEffect(() => { loadDashboard(); }, [loadDashboard]);
+
+  // Realtime notifications
+  useEffect(() => {
+    const channel = supabase
+      .channel('student-notifications')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${authUser.id}` },
+        (payload) => {
+          setNotifications(prev => [payload.new as any, ...prev]);
+          setUnreadCount(prev => prev + 1);
+          toast({ title: (payload.new as any).title, description: (payload.new as any).body });
+        })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'interview_requests', filter: `student_user_id=eq.${authUser.id}` },
+        () => { loadDashboard(); })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [authUser.id, toast, loadDashboard]);
 
   useEffect(() => {
     if (!dashData?.studentProfile) return;
@@ -50,6 +80,13 @@ const StudentDashboard = ({ user: authUser }: StudentDashboardProps) => {
       : {};
     fetchLeaderboard(filter).then(setLeaderboard);
   }, [leaderFilter, dashData?.studentProfile]);
+
+  useEffect(() => {
+    supabase.from("job_cache").select("*").order("fetched_at", { ascending: false }).limit(50)
+      .then(({ data }) => setJobCache(data || []));
+    supabase.from("certification_catalog").select("*").order("category")
+      .then(({ data }) => setCertCatalog(data || []));
+  }, []);
 
   const handleFileUpload = useCallback((type: "transcript" | "certificate" | "project") => {
     const input = document.createElement("input");
@@ -68,6 +105,10 @@ const StudentDashboard = ({ user: authUser }: StudentDashboardProps) => {
 
       if (type === "transcript") {
         await supabase.from("transcript_uploads").insert({ user_id: authUser.id, file_path: path });
+        await supabase.from("verification_requests").insert({ user_id: authUser.id, resource_type: "transcript", resource_id: path });
+      } else if (type === "certificate") {
+        await supabase.from("student_certifications").insert({ user_id: authUser.id, custom_name: file.name.replace(/\.[^.]+$/, ""), file_path: path });
+        await supabase.from("verification_requests").insert({ user_id: authUser.id, resource_type: "certification", resource_id: path });
       } else if (type === "project") {
         const title = file.name.replace(/\.[^.]+$/, "");
         await supabase.from("student_projects").insert({ user_id: authUser.id, title, file_path: path });
@@ -78,15 +119,19 @@ const StudentDashboard = ({ user: authUser }: StudentDashboardProps) => {
     input.click();
   }, [authUser.id, toast, loadDashboard]);
 
-  // Fetch job market data and cert catalog for roadmap/jobs tabs
-  const [jobCache, setJobCache] = useState<any[]>([]);
-  const [certCatalog, setCertCatalog] = useState<any[]>([]);
-  useEffect(() => {
-    supabase.from("job_cache").select("*").order("fetched_at", { ascending: false }).limit(50)
-      .then(({ data }) => setJobCache(data || []));
-    supabase.from("certification_catalog").select("*").order("category")
-      .then(({ data }) => setCertCatalog(data || []));
-  }, []);
+  const handleInterviewResponse = async (id: string, response: "accepted" | "declined") => {
+    await supabase.from("interview_requests").update({ status: response, student_response: response, updated_at: new Date().toISOString() }).eq("id", id);
+    toast({ title: `Interview ${response}` });
+    loadDashboard();
+  };
+
+  const markNotificationsRead = async () => {
+    const unreadIds = notifications.filter(n => !n.read).map(n => n.id);
+    if (unreadIds.length === 0) return;
+    await supabase.from("notifications").update({ read: true }).in("id", unreadIds);
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    setUnreadCount(0);
+  };
 
   if (loading) {
     return (
@@ -100,7 +145,6 @@ const StudentDashboard = ({ user: authUser }: StudentDashboardProps) => {
     );
   }
 
-  // Onboarding gate
   if (onboardingComplete === false) {
     return <StudentOnboarding userId={authUser.id} onComplete={loadDashboard} />;
   }
@@ -108,6 +152,20 @@ const StudentDashboard = ({ user: authUser }: StudentDashboardProps) => {
   const sp = dashData?.studentProfile;
   const ers = calculateERSFromData(dashData || {});
   const myRank = leaderboard.findIndex(s => s.user_id === authUser.id) + 1;
+
+  // Profile completeness
+  const completenessChecks = [
+    { label: "Profile Name", done: !!authUser.full_name },
+    { label: "University", done: !!sp?.university },
+    { label: "Major", done: !!sp?.major },
+    { label: "GPA", done: (sp?.gpa || 0) > 0 },
+    { label: "Transcript", done: (dashData?.certifications?.length || 0) > 0 || (dashData?.projects?.length || 0) > 0 },
+    { label: "Certifications", done: (dashData?.certifications?.length || 0) > 0 },
+    { label: "Projects", done: (dashData?.projects?.length || 0) > 0 },
+    { label: "Skills", done: (dashData?.skills?.length || 0) > 0 },
+    { label: "Career Target", done: !!sp?.career_target },
+  ];
+  const completeness = Math.round((completenessChecks.filter(c => c.done).length / completenessChecks.length) * 100);
 
   return (
     <div className="container py-6 space-y-6">
@@ -119,26 +177,49 @@ const StudentDashboard = ({ user: authUser }: StudentDashboardProps) => {
             {sp?.career_target && <span className="ml-2 text-primary font-medium">· Target: {sp.career_target}</span>}
           </p>
         </div>
+        <div className="flex items-center gap-3">
+          <div className="text-right">
+            <p className="text-xs text-muted-foreground">Profile</p>
+            <p className="text-sm font-semibold">{completeness}%</p>
+          </div>
+          <Progress value={completeness} className="h-2 w-24" />
+        </div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard icon={Target} label="ERS Score" value={ers.total} delay={0} />
         <StatCard icon={Trophy} label="Rank" value={myRank > 0 ? `#${myRank}` : "—"} delay={0.1} />
         <StatCard icon={Award} label="Certifications" value={dashData?.certifications?.length || 0} delay={0.2} />
-        <StatCard icon={Briefcase} label="Projects" value={dashData?.projects?.length || 0} delay={0.3} />
+        <StatCard icon={Briefcase} label="Interviews" value={interviews.length} delay={0.3} />
       </div>
 
       <Tabs defaultValue="ers" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
+        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
           <TabsTrigger value="ers"><Target className="h-4 w-4 mr-1 hidden sm:inline" />ERS</TabsTrigger>
-          <TabsTrigger value="leaderboard"><Trophy className="h-4 w-4 mr-1 hidden sm:inline" />Leaderboard</TabsTrigger>
-          <TabsTrigger value="skills"><TrendingUp className="h-4 w-4 mr-1 hidden sm:inline" />Skills</TabsTrigger>
-          <TabsTrigger value="uploads"><Upload className="h-4 w-4 mr-1 hidden sm:inline" />Documents</TabsTrigger>
-          <TabsTrigger value="roadmap"><Map className="h-4 w-4 mr-1 hidden sm:inline" />Roadmap</TabsTrigger>
-          <TabsTrigger value="jobs"><Briefcase className="h-4 w-4 mr-1 hidden sm:inline" />Jobs</TabsTrigger>
+          <TabsTrigger value="leaderboard"><Trophy className="h-4 w-4 mr-1 hidden sm:inline" />Rank</TabsTrigger>
+          <TabsTrigger value="uploads"><Upload className="h-4 w-4 mr-1 hidden sm:inline" />Docs</TabsTrigger>
+          <TabsTrigger value="opportunities" className="relative">
+            <Briefcase className="h-4 w-4 mr-1 hidden sm:inline" />Opps
+            {interviews.filter(i => i.status === "requested").length > 0 && (
+              <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full text-[10px] w-4 h-4 flex items-center justify-center">
+                {interviews.filter(i => i.status === "requested").length}
+              </span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="roadmap"><Map className="h-4 w-4 mr-1 hidden sm:inline" />Road</TabsTrigger>
+          <TabsTrigger value="jobs"><TrendingUp className="h-4 w-4 mr-1 hidden sm:inline" />Jobs</TabsTrigger>
+          <TabsTrigger value="skills"><Star className="h-4 w-4 mr-1 hidden sm:inline" />Skills</TabsTrigger>
+          <TabsTrigger value="notifications" className="relative">
+            <Bell className="h-4 w-4 mr-1 hidden sm:inline" />Alerts
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full text-[10px] w-4 h-4 flex items-center justify-center">
+                {unreadCount}
+              </span>
+            )}
+          </TabsTrigger>
         </TabsList>
 
-        {/* ERS Tab - Explainable Breakdown */}
+        {/* ERS Tab */}
         <TabsContent value="ers">
           <div className="grid md:grid-cols-3 gap-6">
             <motion.div className="md:col-span-1 rounded-xl border bg-card p-6 flex flex-col items-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
@@ -154,6 +235,19 @@ const StudentDashboard = ({ user: authUser }: StudentDashboardProps) => {
                   <Star className="h-3 w-3 mr-1" />+{ers.breakdown.nationalReadiness}% National
                 </Badge>
               )}
+              {/* Profile Completeness */}
+              <div className="w-full mt-4 border-t pt-4">
+                <p className="text-xs font-semibold mb-2">Profile Completeness</p>
+                <Progress value={completeness} className="h-2 mb-2" />
+                <div className="grid grid-cols-1 gap-1">
+                  {completenessChecks.map(c => (
+                    <div key={c.label} className="flex items-center gap-2 text-xs">
+                      {c.done ? <CheckCircle className="h-3 w-3 text-[hsl(var(--success))]" /> : <Circle className="h-3 w-3 text-muted-foreground" />}
+                      <span className={c.done ? "" : "text-muted-foreground"}>{c.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </motion.div>
             <div className="md:col-span-2 space-y-4">
               <div className="rounded-xl border bg-card p-6">
@@ -162,17 +256,17 @@ const StudentDashboard = ({ user: authUser }: StudentDashboardProps) => {
                   <Tooltip>
                     <TooltipTrigger><Info className="h-4 w-4 text-muted-foreground" /></TooltipTrigger>
                     <TooltipContent className="max-w-xs">
-                      <p className="text-xs">Every score component is transparent. Click any bar for details. Zero black-box scoring — compliant with SDAIA guidelines.</p>
+                      <p className="text-xs">Every score component is transparent. Weights adjust based on your major track. Verified documents score higher.</p>
                     </TooltipContent>
                   </Tooltip>
                 </div>
                 <div className="space-y-4">
                   {[
-                    { label: "Academic Performance", value: ers.breakdown.academic || 0, weight: "40%", color: "bg-primary" },
-                    { label: "Certifications", value: ers.breakdown.certification || 0, weight: "25%", color: "bg-[hsl(var(--success))]" },
-                    { label: "Projects", value: ers.breakdown.project || 0, weight: "15%", color: "bg-secondary" },
-                    { label: "Soft Skills", value: ers.breakdown.softSkills || 0, weight: "10%", color: "bg-accent-foreground" },
-                    { label: "Conduct & Attendance", value: ers.breakdown.conduct || 0, weight: "10%", color: "bg-[hsl(var(--gold))]" },
+                    { label: "Academic Performance", value: ers.breakdown.academic || 0, weight: ers.explanation?.weights?.academic ? `${Math.round(ers.explanation.weights.academic * 100)}%` : "40%", color: "bg-primary" },
+                    { label: "Certifications", value: ers.breakdown.certification || 0, weight: ers.explanation?.weights?.cert ? `${Math.round(ers.explanation.weights.cert * 100)}%` : "25%", color: "bg-[hsl(var(--success))]" },
+                    { label: "Projects", value: ers.breakdown.project || 0, weight: ers.explanation?.weights?.project ? `${Math.round(ers.explanation.weights.project * 100)}%` : "15%", color: "bg-secondary" },
+                    { label: "Soft Skills", value: ers.breakdown.softSkills || 0, weight: ers.explanation?.weights?.soft ? `${Math.round(ers.explanation.weights.soft * 100)}%` : "10%", color: "bg-accent-foreground" },
+                    { label: "Conduct & Attendance", value: ers.breakdown.conduct || 0, weight: ers.explanation?.weights?.conduct ? `${Math.round(ers.explanation.weights.conduct * 100)}%` : "10%", color: "bg-[hsl(var(--gold))]" },
                   ].map(item => (
                     <div key={item.label}>
                       <div className="flex justify-between text-sm mb-1">
@@ -189,9 +283,12 @@ const StudentDashboard = ({ user: authUser }: StudentDashboardProps) => {
                     </div>
                   )}
                 </div>
+                {ers.explanation?.major_category && (
+                  <p className="text-xs text-muted-foreground mt-4 border-t pt-3">
+                    Major Track: <span className="font-semibold capitalize">{ers.explanation.major_category}</span> — weights customized for your field
+                  </p>
+                )}
               </div>
-
-              {/* Certifications */}
               <div className="rounded-xl border bg-card p-6">
                 <h3 className="font-semibold font-heading mb-3">Certifications</h3>
                 {dashData?.certifications?.length > 0 ? (
@@ -247,32 +344,6 @@ const StudentDashboard = ({ user: authUser }: StudentDashboardProps) => {
           </div>
         </TabsContent>
 
-        {/* Skills */}
-        <TabsContent value="skills">
-          <div className="rounded-xl border bg-card p-6">
-            <h3 className="text-lg font-semibold font-heading mb-4">Skill Matrix</h3>
-            {dashData?.skills?.length > 0 ? (
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {dashData.skills.map((s: any) => (
-                  <div key={s.id} className="flex items-center gap-3 rounded-lg border p-3">
-                    <div className={`h-3 w-3 rounded-full ${
-                      s.proficiency_level === "expert" ? "bg-[hsl(var(--success))]" :
-                      s.proficiency_level === "advanced" ? "bg-primary" :
-                      s.proficiency_level === "intermediate" ? "bg-[hsl(var(--gold))]" :
-                      "bg-muted-foreground"
-                    }`} />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">{s.skill_name}</p>
-                      <p className="text-xs text-muted-foreground capitalize">{s.proficiency_level} · {s.source}</p>
-                    </div>
-                    {s.verified && <CheckCircle className="h-4 w-4 text-[hsl(var(--success))]" />}
-                  </div>
-                ))}
-              </div>
-            ) : <p className="text-sm text-muted-foreground">No skills added yet.</p>}
-          </div>
-        </TabsContent>
-
         {/* Documents */}
         <TabsContent value="uploads">
           <div className="rounded-xl border bg-card p-6">
@@ -288,7 +359,7 @@ const StudentDashboard = ({ user: authUser }: StudentDashboardProps) => {
                 <Upload className="h-5 w-5 mr-2" /> Upload Project
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground mt-2">Accepted: PDF, PNG, JPEG · Max 10 MB</p>
+            <p className="text-xs text-muted-foreground mt-2">Accepted: PDF, PNG, JPEG · Max 10 MB · Documents require verification</p>
 
             <h4 className="font-semibold mt-6 mb-3">Projects</h4>
             {dashData?.projects?.length > 0 ? (
@@ -308,7 +379,84 @@ const StudentDashboard = ({ user: authUser }: StudentDashboardProps) => {
           </div>
         </TabsContent>
 
-        {/* Certification Roadmap */}
+        {/* Opportunities - Interview Requests */}
+        <TabsContent value="opportunities">
+          <div className="rounded-xl border bg-card p-6">
+            <h3 className="text-lg font-semibold font-heading mb-4">Interview Requests & Opportunities</h3>
+            {interviews.length === 0 ? (
+              <div className="text-center py-12">
+                <Briefcase className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+                <p className="text-sm text-muted-foreground">No interview requests yet. Keep improving your ERS to attract recruiters!</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {interviews.map((iv, i) => (
+                  <motion.div key={iv.id} className="rounded-lg border p-4"
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.05 }}>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-sm">{iv.job_title || "Interview Request"}</p>
+                          <Badge variant={
+                            iv.status === "requested" ? "default" :
+                            iv.status === "accepted" ? "secondary" :
+                            iv.status === "declined" ? "destructive" : "outline"
+                          } className="text-[10px]">{iv.status}</Badge>
+                        </div>
+                        {iv.job_description && <p className="text-xs text-muted-foreground mt-1">{iv.job_description}</p>}
+                        <p className="text-xs text-muted-foreground mt-1">
+                          <Clock className="h-3 w-3 inline mr-1" />
+                          {new Date(iv.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      {iv.status === "requested" && (
+                        <div className="flex gap-2">
+                          <Button size="sm" onClick={() => handleInterviewResponse(iv.id, "accepted")}>
+                            <CheckCircle className="h-4 w-4 mr-1" />Accept
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => handleInterviewResponse(iv.id, "declined")}>
+                            Decline
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+
+            {/* Job matches based on profile */}
+            <h4 className="font-semibold mt-8 mb-3">Recommended Opportunities</h4>
+            {jobCache.length > 0 ? (
+              <div className="space-y-2">
+                {jobCache.filter(job => {
+                  const majorLower = (sp?.major || "").toLowerCase();
+                  const sectorLower = (job.sector || "").toLowerCase();
+                  return sectorLower.includes(majorLower.split(" ")[0]) || majorLower.includes(sectorLower.split(" ")[0]) || true;
+                }).slice(0, 10).map((job: any) => (
+                  <div key={job.id} className="rounded-lg border p-3 flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-medium">{job.title}</p>
+                      <p className="text-xs text-muted-foreground">{job.company || "—"} · {job.location} · {job.sector}</p>
+                      {job.required_skills?.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {job.required_skills.slice(0, 4).map((s: string) => <Badge key={s} variant="secondary" className="text-[10px]">{s}</Badge>)}
+                        </div>
+                      )}
+                    </div>
+                    {job.source_url && (
+                      <a href={job.source_url} target="_blank" rel="noopener noreferrer">
+                        <Button size="sm" variant="outline">View</Button>
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : <p className="text-sm text-muted-foreground">No opportunities available yet.</p>}
+          </div>
+        </TabsContent>
+
+        {/* Roadmap */}
         <TabsContent value="roadmap">
           <div className="rounded-xl border bg-card p-6">
             <h3 className="text-lg font-semibold font-heading mb-2">Certification Roadmap</h3>
@@ -326,7 +474,6 @@ const StudentDashboard = ({ user: authUser }: StudentDashboardProps) => {
                           {cert.is_hadaf_reimbursed && <Badge variant="outline" className="text-[10px]">🇸🇦 Hadaf</Badge>}
                         </div>
                         <p className="text-xs text-muted-foreground">{cert.category} · Weight: {cert.weight} · {cert.sector || "General"}</p>
-                        {cert.description && <p className="text-xs text-muted-foreground mt-1">{cert.description}</p>}
                       </div>
                       <div className="text-right">
                         <p className="text-lg font-bold text-primary">+{cert.weight}</p>
@@ -340,7 +487,7 @@ const StudentDashboard = ({ user: authUser }: StudentDashboardProps) => {
           </div>
         </TabsContent>
 
-        {/* Job Market Insights */}
+        {/* Jobs */}
         <TabsContent value="jobs">
           <div className="rounded-xl border bg-card p-6">
             <h3 className="text-lg font-semibold font-heading mb-2">Job Market Insights</h3>
@@ -370,7 +517,66 @@ const StudentDashboard = ({ user: authUser }: StudentDashboardProps) => {
                   </div>
                 ))}
               </div>
-            ) : <p className="text-sm text-muted-foreground text-center py-8">No job data available yet. Check back soon.</p>}
+            ) : <p className="text-sm text-muted-foreground text-center py-8">No job data available yet.</p>}
+          </div>
+        </TabsContent>
+
+        {/* Skills */}
+        <TabsContent value="skills">
+          <div className="rounded-xl border bg-card p-6">
+            <h3 className="text-lg font-semibold font-heading mb-4">Skill Matrix</h3>
+            {dashData?.skills?.length > 0 ? (
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {dashData.skills.map((s: any) => (
+                  <div key={s.id} className="flex items-center gap-3 rounded-lg border p-3">
+                    <div className={`h-3 w-3 rounded-full ${
+                      s.proficiency_level === "expert" ? "bg-[hsl(var(--success))]" :
+                      s.proficiency_level === "advanced" ? "bg-primary" :
+                      s.proficiency_level === "intermediate" ? "bg-[hsl(var(--gold))]" :
+                      "bg-muted-foreground"
+                    }`} />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">{s.skill_name}</p>
+                      <p className="text-xs text-muted-foreground capitalize">{s.proficiency_level} · {s.source}</p>
+                    </div>
+                    {s.verified && <CheckCircle className="h-4 w-4 text-[hsl(var(--success))]" />}
+                  </div>
+                ))}
+              </div>
+            ) : <p className="text-sm text-muted-foreground">No skills added yet.</p>}
+          </div>
+        </TabsContent>
+
+        {/* Notifications */}
+        <TabsContent value="notifications">
+          <div className="rounded-xl border bg-card p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold font-heading">Notifications</h3>
+              {unreadCount > 0 && (
+                <Button size="sm" variant="outline" onClick={markNotificationsRead}>Mark all read</Button>
+              )}
+            </div>
+            {notifications.length === 0 ? (
+              <div className="text-center py-12">
+                <Bell className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+                <p className="text-sm text-muted-foreground">No notifications yet.</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {notifications.map((n, i) => (
+                  <motion.div key={n.id}
+                    className={`flex items-start gap-3 rounded-lg border p-3 ${!n.read ? "bg-primary/5 border-primary/20" : ""}`}
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }}>
+                    <Bell className={`h-4 w-4 mt-0.5 shrink-0 ${!n.read ? "text-primary" : "text-muted-foreground"}`} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium">{n.title}</p>
+                      {n.body && <p className="text-xs text-muted-foreground">{n.body}</p>}
+                      <p className="text-xs text-muted-foreground mt-1">{new Date(n.created_at).toLocaleString()}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
           </div>
         </TabsContent>
       </Tabs>
