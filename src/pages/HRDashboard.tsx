@@ -115,7 +115,7 @@ const HRDashboard = ({ user: authUser }: HRDashboardProps) => {
 
   const sendInterviewRequest = async () => {
     if (!interviewDialog) return;
-    await supabase.from("interview_requests").insert({
+    await untypedTable("interview_requests").insert({
       hr_user_id: authUser.id,
       student_user_id: interviewDialog.user_id,
       job_title: interviewTitle || "Interview Request",
