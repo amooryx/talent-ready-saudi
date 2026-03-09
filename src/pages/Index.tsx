@@ -99,7 +99,7 @@ const Index = () => {
       </section>
 
       {/* ───────── HOW IT WORKS ───────── */}
-      <section className="bg-accent/50 py-16 md:py-20">
+      <section id="features" className="bg-accent/50 py-16 md:py-20">
         <div className="container">
           <motion.div className="text-center mb-10" {...fadeUp}>
             <h2 className="text-2xl md:text-3xl font-bold font-heading mb-2">How HireQimah Works</h2>
