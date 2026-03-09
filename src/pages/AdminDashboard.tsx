@@ -7,10 +7,11 @@ import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import StatCard from "@/components/StatCard";
 import { supabase } from "@/integrations/supabase/client";
+import { untypedTable } from "@/lib/untypedTable";
 import type { AuthUser } from "@/lib/supabaseAuth";
 import {
   ShieldCheck, Users, FileCheck, Settings, CheckCircle, XCircle, Clock,
-  Award, BarChart3, Activity, TrendingUp, Globe
+  Award, BarChart3, Activity, TrendingUp, Globe, Calendar, AlertTriangle
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -19,37 +20,50 @@ interface AdminDashboardProps { user: AuthUser; }
 const AdminDashboard = ({ user: authUser }: AdminDashboardProps) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({ users: 0, students: 0, pendingVerifications: 0, auditCount: 0 });
+  const [stats, setStats] = useState({ users: 0, students: 0, hrUsers: 0, universities: 0, pendingVerifications: 0, auditCount: 0, interviews: 0 });
   const [verifications, setVerifications] = useState<any[]>([]);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [students, setStudents] = useState<any[]>([]);
   const [roles, setRoles] = useState<any[]>([]);
+  const [flaggedDocs, setFlaggedDocs] = useState<any[]>([]);
 
   const loadDashboard = useCallback(async () => {
     const [
-      { data: profilesData, count: usersCount },
+      { count: usersCount },
       { data: studentsData },
       { data: pendingData },
       { data: auditData },
       { data: rolesData },
+      { data: flagged },
+      { count: interviewCount },
     ] = await Promise.all([
-      supabase.from("profiles").select("*", { count: "exact" }),
+      supabase.from("profiles").select("*", { count: "exact", head: true }),
       supabase.from("student_profiles").select("*, profiles!inner(full_name, email, user_id)").order("ers_score", { ascending: false }).limit(100),
       supabase.from("verification_requests").select("*, profiles!inner(full_name)").eq("status", "pending").order("created_at", { ascending: false }),
       supabase.from("audit_logs").select("*").order("created_at", { ascending: false }).limit(50),
       supabase.from("user_roles").select("role"),
+      supabase.from("document_integrity").select("*, profiles:user_id(full_name)").eq("flag", "REVIEW_REQUIRED").limit(20),
+      untypedTable("interview_requests").select("*", { count: "exact", head: true }),
     ]);
+
+    const roleCounts = (rolesData || []).reduce((acc: Record<string, number>, r: any) => {
+      acc[r.role] = (acc[r.role] || 0) + 1; return acc;
+    }, {});
 
     setStats({
       users: usersCount || 0,
-      students: (studentsData || []).length,
+      students: roleCounts["student"] || 0,
+      hrUsers: roleCounts["hr"] || 0,
+      universities: roleCounts["university"] || 0,
       pendingVerifications: (pendingData || []).length,
       auditCount: (auditData || []).length,
+      interviews: interviewCount || 0,
     });
     setStudents(studentsData || []);
     setVerifications(pendingData || []);
     setAuditLogs(auditData || []);
     setRoles(rolesData || []);
+    setFlaggedDocs(flagged || []);
     setLoading(false);
   }, []);
 
@@ -57,12 +71,8 @@ const AdminDashboard = ({ user: authUser }: AdminDashboardProps) => {
 
   const handleVerification = async (id: string, status: "approved" | "rejected", notes?: string) => {
     await supabase.from("verification_requests").update({
-      status,
-      reviewer_id: authUser.id,
-      reviewed_at: new Date().toISOString(),
-      reviewer_notes: notes || null,
+      status, reviewer_id: authUser.id, reviewed_at: new Date().toISOString(), reviewer_notes: notes || null,
     }).eq("id", id);
-
     toast({ title: `Verification ${status}` });
     loadDashboard();
   };
@@ -80,8 +90,7 @@ const AdminDashboard = ({ user: authUser }: AdminDashboardProps) => {
   }
 
   const roleCounts = roles.reduce((acc: Record<string, number>, r: any) => {
-    acc[r.role] = (acc[r.role] || 0) + 1;
-    return acc;
+    acc[r.role] = (acc[r.role] || 0) + 1; return acc;
   }, {});
 
   return (
@@ -94,18 +103,71 @@ const AdminDashboard = ({ user: authUser }: AdminDashboardProps) => {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard icon={Users} label="Total Users" value={stats.users} delay={0} />
         <StatCard icon={Clock} label="Pending Verifications" value={stats.pendingVerifications} delay={0.1} />
-        <StatCard icon={TrendingUp} label="Students" value={stats.students} delay={0.2} />
+        <StatCard icon={Calendar} label="Total Interviews" value={stats.interviews} delay={0.2} />
         <StatCard icon={Activity} label="Audit Entries" value={stats.auditCount} delay={0.3} />
       </div>
 
-      <Tabs defaultValue="verify" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="verify"><FileCheck className="h-4 w-4 mr-1 hidden sm:inline" />Verifications</TabsTrigger>
+      <Tabs defaultValue="overview" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="overview"><BarChart3 className="h-4 w-4 mr-1 hidden sm:inline" />Overview</TabsTrigger>
+          <TabsTrigger value="verify"><FileCheck className="h-4 w-4 mr-1 hidden sm:inline" />Verify</TabsTrigger>
+          <TabsTrigger value="flagged"><AlertTriangle className="h-4 w-4 mr-1 hidden sm:inline" />Flagged</TabsTrigger>
           <TabsTrigger value="users"><Users className="h-4 w-4 mr-1 hidden sm:inline" />Users</TabsTrigger>
-          <TabsTrigger value="ers"><Settings className="h-4 w-4 mr-1 hidden sm:inline" />ERS Config</TabsTrigger>
-          <TabsTrigger value="activity"><Activity className="h-4 w-4 mr-1 hidden sm:inline" />Audit Log</TabsTrigger>
+          <TabsTrigger value="audit"><Activity className="h-4 w-4 mr-1 hidden sm:inline" />Audit</TabsTrigger>
         </TabsList>
 
+        {/* Overview */}
+        <TabsContent value="overview">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            {Object.entries(roleCounts).map(([role, count]) => (
+              <div key={role} className="rounded-lg border bg-card p-4 text-center">
+                <p className="text-2xl font-bold text-primary">{count as number}</p>
+                <p className="text-xs text-muted-foreground capitalize">{role}s</p>
+              </div>
+            ))}
+          </div>
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="rounded-xl border bg-card p-6">
+              <h3 className="font-semibold font-heading mb-4">ERS Weight Configuration</h3>
+              <p className="text-xs text-muted-foreground mb-4">Weights auto-adjust per major track (tech, business, engineering, medical, etc.)</p>
+              <div className="space-y-4">
+                {[
+                  { label: "Academic Performance", weight: 40 },
+                  { label: "Certifications", weight: 25 },
+                  { label: "Projects", weight: 15 },
+                  { label: "Soft Skills & Activities", weight: 10 },
+                  { label: "Conduct & Attendance", weight: 10 },
+                ].map(w => (
+                  <div key={w.label}>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>{w.label}</span>
+                      <span className="font-semibold">{w.weight}%</span>
+                    </div>
+                    <Progress value={w.weight} className="h-3" />
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="rounded-xl border bg-card p-6">
+              <h3 className="font-semibold font-heading mb-4">Advanced Modifiers</h3>
+              <div className="space-y-3">
+                {[
+                  { icon: "🔄", title: "Skill Decay Factor", desc: "15% annual decay for volatile fields" },
+                  { icon: "🔗", title: "Cross-Sector Synergy", desc: "5-10% bonus for multi-sector skills" },
+                  { icon: "🇸🇦", title: "National Readiness", desc: "+5% for Arabic mastery & Saudi history" },
+                  { icon: "🏷️", title: "Hadaf Reimbursement", desc: "Auto-tagged in certification catalog" },
+                ].map(m => (
+                  <div key={m.title} className="rounded-lg border p-3">
+                    <p className="text-sm font-medium">{m.icon} {m.title}</p>
+                    <p className="text-xs text-muted-foreground">{m.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* Verifications */}
         <TabsContent value="verify">
           <div className="rounded-xl border bg-card p-6">
             <h3 className="text-lg font-semibold font-heading mb-4">Verification Queue</h3>
@@ -135,17 +197,35 @@ const AdminDashboard = ({ user: authUser }: AdminDashboardProps) => {
           </div>
         </TabsContent>
 
+        {/* Flagged Documents */}
+        <TabsContent value="flagged">
+          <div className="rounded-xl border bg-card p-6">
+            <h3 className="text-lg font-semibold font-heading mb-4">Flagged Documents</h3>
+            {flaggedDocs.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-8">No flagged documents.</p>
+            ) : (
+              <div className="space-y-3">
+                {flaggedDocs.map((doc, i) => (
+                  <motion.div key={doc.id} className="rounded-lg border p-4 border-destructive/30"
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.05 }}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-medium">{doc.file_path?.split("/").pop() || "Document"}</p>
+                        <p className="text-xs text-muted-foreground">{doc.file_type} · {new Date(doc.created_at).toLocaleDateString()}</p>
+                        {doc.flag_reason && <p className="text-xs text-destructive mt-1">{doc.flag_reason}</p>}
+                      </div>
+                      <Badge variant="destructive" className="text-[10px]">{doc.flag}</Badge>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </div>
+        </TabsContent>
+
+        {/* Users */}
         <TabsContent value="users">
           <div className="rounded-xl border bg-card p-6">
-            <h3 className="text-lg font-semibold font-heading mb-4">User Distribution</h3>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              {Object.entries(roleCounts).map(([role, count]) => (
-                <div key={role} className="rounded-lg border p-4 text-center">
-                  <p className="text-2xl font-bold text-primary">{count as number}</p>
-                  <p className="text-xs text-muted-foreground capitalize">{role}s</p>
-                </div>
-              ))}
-            </div>
             <h4 className="font-semibold mb-3">Top Students by ERS</h4>
             <div className="space-y-2">
               {students.slice(0, 20).map((s, i) => (
@@ -162,61 +242,15 @@ const AdminDashboard = ({ user: authUser }: AdminDashboardProps) => {
           </div>
         </TabsContent>
 
-        <TabsContent value="ers">
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="rounded-xl border bg-card p-6">
-              <h3 className="font-semibold font-heading mb-4">ERS Weight Configuration</h3>
-              <p className="text-xs text-muted-foreground mb-4">ERS = (40% Academic) + (25% Certs) + (15% Projects) + (10% Soft Skills) + (10% Conduct)</p>
-              <div className="space-y-4">
-                {[
-                  { label: "Academic Performance", weight: 40 },
-                  { label: "Certifications", weight: 25 },
-                  { label: "Projects", weight: 15 },
-                  { label: "Soft Skills & Activities", weight: 10 },
-                  { label: "Conduct & Attendance", weight: 10 },
-                ].map(w => (
-                  <div key={w.label}>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>{w.label}</span>
-                      <span className="font-semibold">{w.weight}%</span>
-                    </div>
-                    <Progress value={w.weight} className="h-3" />
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="rounded-xl border bg-card p-6">
-              <h3 className="font-semibold font-heading mb-4">Advanced Modifiers</h3>
-              <div className="space-y-3">
-                <div className="rounded-lg border p-3">
-                  <p className="text-sm font-medium">🔄 Skill Decay Factor</p>
-                  <p className="text-xs text-muted-foreground">15% annual decay for volatile fields (Tech, AI, Marketing)</p>
-                </div>
-                <div className="rounded-lg border p-3">
-                  <p className="text-sm font-medium">🔗 Cross-Sector Synergy</p>
-                  <p className="text-xs text-muted-foreground">5-10% bonus for multi-sector skill overlap</p>
-                </div>
-                <div className="rounded-lg border p-3">
-                  <p className="text-sm font-medium">🇸🇦 National Readiness</p>
-                  <p className="text-xs text-muted-foreground">+5% for Arabic mastery & Saudi history proficiency</p>
-                </div>
-                <div className="rounded-lg border p-3">
-                  <p className="text-sm font-medium">🏷️ Hadaf Reimbursement</p>
-                  <p className="text-xs text-muted-foreground">Certifications tagged as "Free for Saudi Citizens"</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="activity">
+        {/* Audit */}
+        <TabsContent value="audit">
           <div className="rounded-xl border bg-card p-6">
             <h3 className="text-lg font-semibold font-heading mb-4">Audit Log</h3>
             {auditLogs.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">No audit entries recorded.</p>
+              <p className="text-sm text-muted-foreground text-center py-8">No audit entries.</p>
             ) : (
               <div className="space-y-2 max-h-96 overflow-y-auto">
-                {auditLogs.map((log, i) => (
+                {auditLogs.map((log) => (
                   <div key={log.id} className="flex items-start gap-3 rounded-lg border p-3">
                     <Activity className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
                     <div className="flex-1 min-w-0">
