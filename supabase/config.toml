@@ -1,1 +1,16 @@
 project_id = "gdeqerqgbvbxjvvckrvy"
+
+[functions.market-intelligence]
+verify_jwt = false
+
+[functions.career-roadmap]
+verify_jwt = false
+
+[functions.scout-career-intelligence]
+verify_jwt = false
+
+[functions.auth-guard]
+verify_jwt = false
+
+[functions.seed-demo-accounts]
+verify_jwt = false

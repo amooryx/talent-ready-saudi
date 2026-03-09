@@ -13,6 +13,7 @@ import {
   ShieldCheck, Users, FileCheck, Settings, CheckCircle, XCircle, Clock,
   Award, BarChart3, Activity, TrendingUp, Globe, Calendar, AlertTriangle
 } from "lucide-react";
+import MarketIntelligenceDashboard from "@/components/MarketIntelligenceDashboard";
 import { useToast } from "@/hooks/use-toast";
 
 interface AdminDashboardProps { user: AuthUser; }
@@ -108,8 +109,9 @@ const AdminDashboard = ({ user: authUser }: AdminDashboardProps) => {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="overview"><BarChart3 className="h-4 w-4 mr-1 hidden sm:inline" />Overview</TabsTrigger>
+          <TabsTrigger value="market"><TrendingUp className="h-4 w-4 mr-1 hidden sm:inline" />Market</TabsTrigger>
           <TabsTrigger value="verify"><FileCheck className="h-4 w-4 mr-1 hidden sm:inline" />Verify</TabsTrigger>
           <TabsTrigger value="flagged"><AlertTriangle className="h-4 w-4 mr-1 hidden sm:inline" />Flagged</TabsTrigger>
           <TabsTrigger value="users"><Users className="h-4 w-4 mr-1 hidden sm:inline" />Users</TabsTrigger>
@@ -165,6 +167,11 @@ const AdminDashboard = ({ user: authUser }: AdminDashboardProps) => {
               </div>
             </div>
           </div>
+        </TabsContent>
+
+        {/* Market Intelligence */}
+        <TabsContent value="market">
+          <MarketIntelligenceDashboard />
         </TabsContent>
 
         {/* Verifications */}
