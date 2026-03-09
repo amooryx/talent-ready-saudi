@@ -344,6 +344,56 @@ export type Database = {
         }
         Relationships: []
       }
+      job_analysis_results: {
+        Row: {
+          analyzed_at: string
+          confidence_score: number | null
+          detected_role: string | null
+          experience_level: string | null
+          extracted_certifications: string[] | null
+          extracted_skills: string[] | null
+          extracted_soft_skills: string[] | null
+          id: string
+          job_cache_id: string | null
+          raw_analysis: Json | null
+          salary_range: string | null
+        }
+        Insert: {
+          analyzed_at?: string
+          confidence_score?: number | null
+          detected_role?: string | null
+          experience_level?: string | null
+          extracted_certifications?: string[] | null
+          extracted_skills?: string[] | null
+          extracted_soft_skills?: string[] | null
+          id?: string
+          job_cache_id?: string | null
+          raw_analysis?: Json | null
+          salary_range?: string | null
+        }
+        Update: {
+          analyzed_at?: string
+          confidence_score?: number | null
+          detected_role?: string | null
+          experience_level?: string | null
+          extracted_certifications?: string[] | null
+          extracted_skills?: string[] | null
+          extracted_soft_skills?: string[] | null
+          id?: string
+          job_cache_id?: string | null
+          raw_analysis?: Json | null
+          salary_range?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_analysis_results_job_cache_id_fkey"
+            columns: ["job_cache_id"]
+            isOneToOne: false
+            referencedRelation: "job_cache"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_cache: {
         Row: {
           company: string | null
@@ -507,6 +557,173 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      market_cert_demand: {
+        Row: {
+          catalog_id: string | null
+          cert_name: string
+          company_diversity: number
+          created_at: string
+          demand_score: number
+          difficulty_level: string | null
+          ers_points: number
+          id: string
+          last_calculated_at: string
+          mention_count: number
+          normalized_name: string
+          recent_postings: number
+          sector: string | null
+          trend: string | null
+        }
+        Insert: {
+          catalog_id?: string | null
+          cert_name: string
+          company_diversity?: number
+          created_at?: string
+          demand_score?: number
+          difficulty_level?: string | null
+          ers_points?: number
+          id?: string
+          last_calculated_at?: string
+          mention_count?: number
+          normalized_name: string
+          recent_postings?: number
+          sector?: string | null
+          trend?: string | null
+        }
+        Update: {
+          catalog_id?: string | null
+          cert_name?: string
+          company_diversity?: number
+          created_at?: string
+          demand_score?: number
+          difficulty_level?: string | null
+          ers_points?: number
+          id?: string
+          last_calculated_at?: string
+          mention_count?: number
+          normalized_name?: string
+          recent_postings?: number
+          sector?: string | null
+          trend?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_cert_demand_catalog_id_fkey"
+            columns: ["catalog_id"]
+            isOneToOne: false
+            referencedRelation: "certification_catalog"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      market_refresh_log: {
+        Row: {
+          certs_updated: number | null
+          completed_at: string | null
+          error_message: string | null
+          id: string
+          jobs_analyzed: number | null
+          roles_updated: number | null
+          skills_updated: number | null
+          started_at: string
+          status: string | null
+          triggered_by: string | null
+        }
+        Insert: {
+          certs_updated?: number | null
+          completed_at?: string | null
+          error_message?: string | null
+          id?: string
+          jobs_analyzed?: number | null
+          roles_updated?: number | null
+          skills_updated?: number | null
+          started_at?: string
+          status?: string | null
+          triggered_by?: string | null
+        }
+        Update: {
+          certs_updated?: number | null
+          completed_at?: string | null
+          error_message?: string | null
+          id?: string
+          jobs_analyzed?: number | null
+          roles_updated?: number | null
+          skills_updated?: number | null
+          started_at?: string
+          status?: string | null
+          triggered_by?: string | null
+        }
+        Relationships: []
+      }
+      market_role_taxonomy: {
+        Row: {
+          aliases: string[] | null
+          created_at: string
+          id: string
+          role_category: string
+          role_name: string
+          updated_at: string
+        }
+        Insert: {
+          aliases?: string[] | null
+          created_at?: string
+          id?: string
+          role_category?: string
+          role_name: string
+          updated_at?: string
+        }
+        Update: {
+          aliases?: string[] | null
+          created_at?: string
+          id?: string
+          role_category?: string
+          role_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      market_skill_demand: {
+        Row: {
+          company_diversity: number
+          created_at: string
+          demand_score: number
+          id: string
+          last_calculated_at: string
+          mention_count: number
+          normalized_name: string
+          recent_postings: number
+          sector: string | null
+          skill_name: string
+          trend: string | null
+        }
+        Insert: {
+          company_diversity?: number
+          created_at?: string
+          demand_score?: number
+          id?: string
+          last_calculated_at?: string
+          mention_count?: number
+          normalized_name: string
+          recent_postings?: number
+          sector?: string | null
+          skill_name: string
+          trend?: string | null
+        }
+        Update: {
+          company_diversity?: number
+          created_at?: string
+          demand_score?: number
+          id?: string
+          last_calculated_at?: string
+          mention_count?: number
+          normalized_name?: string
+          recent_postings?: number
+          sector?: string | null
+          skill_name?: string
+          trend?: string | null
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
