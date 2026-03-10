@@ -14,3 +14,9 @@ verify_jwt = false
 
 [functions.seed-demo-accounts]
 verify_jwt = false
+
+[functions.job-ingestion]
+verify_jwt = false
+
+[functions.market-refresh-cron]
+verify_jwt = false
