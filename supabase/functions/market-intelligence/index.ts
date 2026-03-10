@@ -214,9 +214,9 @@ Rules:
       const sector = job?.sector || "general";
       const isRecent = job ? (Date.now() - new Date(job.fetched_at).getTime()) < 7 * 24 * 60 * 60 * 1000 : false;
 
-      // Skills
+      // Skills - normalize using synonym map
       for (const skill of (a.extracted_skills || [])) {
-        const norm = skill.toLowerCase().trim();
+        const norm = normalizeSkill(skill).toLowerCase();
         if (!skillMap.has(norm)) skillMap.set(norm, { mentions: 0, companies: new Set(), recent: 0, sectors: new Set() });
         const s = skillMap.get(norm)!;
         s.mentions++;
