@@ -9,7 +9,8 @@ import { untypedTable } from "@/lib/untypedTable";
 import { useToast } from "@/hooks/use-toast";
 import {
   TrendingUp, TrendingDown, Minus, RefreshCw, Award, Briefcase,
-  Star, BarChart3, Loader2, ArrowUp, ArrowDown
+  Star, BarChart3, Loader2, ArrowUp, ArrowDown, Download, Clock,
+  Zap, Calendar
 } from "lucide-react";
 
 const trendIcon = (trend: string) => {
@@ -27,15 +28,28 @@ const trendBadge = (trend: string) => {
   return colors[trend as keyof typeof colors] || colors.stable;
 };
 
+const changeIndicator = (change: number | null) => {
+  if (!change || change === 0) return null;
+  return (
+    <span className={`text-[10px] font-medium flex items-center gap-0.5 ${change > 0 ? "text-[hsl(var(--success))]" : "text-destructive"}`}>
+      {change > 0 ? <ArrowUp className="h-2.5 w-2.5" /> : <ArrowDown className="h-2.5 w-2.5" />}
+      {Math.abs(change).toFixed(1)}
+    </span>
+  );
+};
+
 export default function MarketIntelligenceDashboard() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [ingesting, setIngesting] = useState(false);
   const [skills, setSkills] = useState<any[]>([]);
   const [certs, setCerts] = useState<any[]>([]);
   const [roles, setRoles] = useState<any[]>([]);
   const [refreshLogs, setRefreshLogs] = useState<any[]>([]);
   const [jobCount, setJobCount] = useState(0);
+  const [certMappings, setCertMappings] = useState<any[]>([]);
+  const [synonymCount, setSynonymCount] = useState(0);
 
   const loadData = useCallback(async () => {
     const [
@@ -44,22 +58,45 @@ export default function MarketIntelligenceDashboard() {
       { data: roleData },
       { data: logData },
       { count },
+      { data: mappings },
+      { count: synCount },
     ] = await Promise.all([
       untypedTable("market_skill_demand").select("*").order("demand_score", { ascending: false }).limit(30),
       untypedTable("market_cert_demand").select("*").order("demand_score", { ascending: false }).limit(20),
       untypedTable("market_role_taxonomy").select("*").order("role_name"),
       untypedTable("market_refresh_log").select("*").order("started_at", { ascending: false }).limit(5),
       supabase.from("job_cache").select("*", { count: "exact", head: true }),
+      untypedTable("skill_cert_mapping").select("*").order("relevance_score", { ascending: false }).limit(50),
+      untypedTable("skill_synonyms").select("*", { count: "exact", head: true }),
     ]);
     setSkills(skillData || []);
     setCerts(certData || []);
     setRoles(roleData || []);
     setRefreshLogs(logData || []);
     setJobCount(count || 0);
+    setCertMappings(mappings || []);
+    setSynonymCount(synCount || 0);
     setLoading(false);
   }, []);
 
   useEffect(() => { loadData(); }, [loadData]);
+
+  const handleIngest = async () => {
+    setIngesting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("job-ingestion");
+      if (error) throw error;
+      toast({
+        title: "Job Ingestion Complete",
+        description: `Generated ${data.generated} jobs · Ingested ${data.ingested} new · ${data.duplicates_skipped} duplicates skipped`,
+      });
+      await loadData();
+    } catch (err: any) {
+      toast({ title: "Ingestion failed", description: err.message, variant: "destructive" });
+    } finally {
+      setIngesting(false);
+    }
+  };
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -102,18 +139,42 @@ export default function MarketIntelligenceDashboard() {
             ERS Market Intelligence Engine
           </h3>
           <p className="text-xs text-muted-foreground">
-            Live Saudi labor market analysis · {jobCount} jobs indexed
+            Live Saudi labor market analysis · {jobCount} jobs indexed · {synonymCount} skill synonyms
             {lastRefresh && ` · Last refresh: ${new Date(lastRefresh.started_at).toLocaleString()}`}
           </p>
         </div>
-        <Button onClick={handleRefresh} disabled={refreshing} size="sm">
-          {refreshing ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-1" />}
-          {refreshing ? "Analyzing..." : "Refresh Market Data"}
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={handleIngest} disabled={ingesting || refreshing} size="sm" variant="outline">
+            {ingesting ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Download className="h-4 w-4 mr-1" />}
+            {ingesting ? "Ingesting..." : "Ingest Jobs"}
+          </Button>
+          <Button onClick={handleRefresh} disabled={refreshing || ingesting} size="sm">
+            {refreshing ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-1" />}
+            {refreshing ? "Analyzing..." : "Analyze Market"}
+          </Button>
+        </div>
+      </div>
+
+      {/* Pipeline Status */}
+      <div className="rounded-xl border bg-card p-4">
+        <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+          <Zap className="h-4 w-4 text-primary" />
+          Automated Pipeline
+        </h4>
+        <div className="flex items-center gap-2 text-xs">
+          <div className="flex items-center gap-1.5">
+            <div className="w-2 h-2 rounded-full bg-[hsl(var(--success))] animate-pulse" />
+            <span>24h Auto-Refresh Active</span>
+          </div>
+          <span className="text-muted-foreground">·</span>
+          <span className="text-muted-foreground">Sources: LinkedIn, Bayt, GulfTalent, Indeed, Jadarat</span>
+          <span className="text-muted-foreground">·</span>
+          <span className="text-muted-foreground">Pipeline: Ingest → Normalize → Analyze → Score → Update ERS</span>
+        </div>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         <div className="rounded-lg border bg-card p-4 text-center">
           <p className="text-2xl font-bold text-primary">{jobCount}</p>
           <p className="text-xs text-muted-foreground">Jobs Indexed</p>
@@ -130,6 +191,10 @@ export default function MarketIntelligenceDashboard() {
           <p className="text-2xl font-bold text-primary">{roles.length}</p>
           <p className="text-xs text-muted-foreground">Roles Detected</p>
         </div>
+        <div className="rounded-lg border bg-card p-4 text-center">
+          <p className="text-2xl font-bold text-primary">{certMappings.length}</p>
+          <p className="text-xs text-muted-foreground">Skill→Cert Maps</p>
+        </div>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
@@ -140,7 +205,7 @@ export default function MarketIntelligenceDashboard() {
             Top Skills by Demand
           </h4>
           {skills.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-8">No data yet. Click "Refresh Market Data" to analyze jobs.</p>
+            <p className="text-sm text-muted-foreground text-center py-8">No data yet. Click "Ingest Jobs" then "Analyze Market".</p>
           ) : (
             <div className="space-y-2 max-h-80 overflow-y-auto">
               {skills.map((s, i) => (
@@ -152,6 +217,7 @@ export default function MarketIntelligenceDashboard() {
                     <p className="text-[10px] text-muted-foreground">{s.mention_count} mentions · {s.company_diversity} companies</p>
                   </div>
                   <div className="flex items-center gap-2">
+                    {changeIndicator(s.weekly_change)}
                     {trendIcon(s.trend)}
                     <Badge className={`text-[10px] ${trendBadge(s.trend)}`}>{Math.round(s.demand_score)}</Badge>
                   </div>
@@ -168,7 +234,7 @@ export default function MarketIntelligenceDashboard() {
             Top Certifications by Demand
           </h4>
           {certs.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-8">No data yet. Click "Refresh Market Data" to analyze jobs.</p>
+            <p className="text-sm text-muted-foreground text-center py-8">No data yet. Click "Ingest Jobs" then "Analyze Market".</p>
           ) : (
             <div className="space-y-2 max-h-80 overflow-y-auto">
               {certs.map((c, i) => (
@@ -184,6 +250,7 @@ export default function MarketIntelligenceDashboard() {
                   </div>
                   <div className="flex flex-col items-end gap-1">
                     <div className="flex items-center gap-1">
+                      {changeIndicator(c.weekly_change)}
                       {trendIcon(c.trend)}
                       <Badge className={`text-[10px] ${trendBadge(c.trend)}`}>{Math.round(c.demand_score)}</Badge>
                     </div>
@@ -195,6 +262,26 @@ export default function MarketIntelligenceDashboard() {
           )}
         </div>
       </div>
+
+      {/* Skill → Certification Mapping */}
+      {certMappings.length > 0 && (
+        <div className="rounded-xl border bg-card p-6">
+          <h4 className="font-semibold font-heading mb-4 flex items-center gap-2">
+            <Award className="h-4 w-4 text-primary" />
+            Skill → Certification Recommendations
+          </h4>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            {certMappings.slice(0, 15).map((m) => (
+              <div key={m.id} className="flex items-center gap-2 rounded-lg border p-2">
+                <Badge variant="secondary" className="text-[10px] shrink-0">{m.skill_name}</Badge>
+                <span className="text-muted-foreground text-[10px]">→</span>
+                <span className="text-xs font-medium truncate">{m.cert_name}</span>
+                <Badge variant="outline" className="text-[10px] ml-auto shrink-0">{m.relevance_score}%</Badge>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Detected Roles */}
       <div className="rounded-xl border bg-card p-6">

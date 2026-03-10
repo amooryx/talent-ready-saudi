@@ -116,6 +116,36 @@ export type Database = {
         }
         Relationships: []
       }
+      demand_history: {
+        Row: {
+          created_at: string
+          demand_score: number
+          id: string
+          item_name: string
+          item_type: string
+          mention_count: number
+          snapshot_date: string
+        }
+        Insert: {
+          created_at?: string
+          demand_score?: number
+          id?: string
+          item_name: string
+          item_type: string
+          mention_count?: number
+          snapshot_date?: string
+        }
+        Update: {
+          created_at?: string
+          demand_score?: number
+          id?: string
+          item_name?: string
+          item_type?: string
+          mention_count?: number
+          snapshot_date?: string
+        }
+        Relationships: []
+      }
       document_integrity: {
         Row: {
           author: string | null
@@ -570,10 +600,12 @@ export type Database = {
           id: string
           last_calculated_at: string
           mention_count: number
+          monthly_change: number | null
           normalized_name: string
           recent_postings: number
           sector: string | null
           trend: string | null
+          weekly_change: number | null
         }
         Insert: {
           catalog_id?: string | null
@@ -586,10 +618,12 @@ export type Database = {
           id?: string
           last_calculated_at?: string
           mention_count?: number
+          monthly_change?: number | null
           normalized_name: string
           recent_postings?: number
           sector?: string | null
           trend?: string | null
+          weekly_change?: number | null
         }
         Update: {
           catalog_id?: string | null
@@ -602,10 +636,12 @@ export type Database = {
           id?: string
           last_calculated_at?: string
           mention_count?: number
+          monthly_change?: number | null
           normalized_name?: string
           recent_postings?: number
           sector?: string | null
           trend?: string | null
+          weekly_change?: number | null
         }
         Relationships: [
           {
@@ -691,11 +727,13 @@ export type Database = {
           id: string
           last_calculated_at: string
           mention_count: number
+          monthly_change: number | null
           normalized_name: string
           recent_postings: number
           sector: string | null
           skill_name: string
           trend: string | null
+          weekly_change: number | null
         }
         Insert: {
           company_diversity?: number
@@ -704,11 +742,13 @@ export type Database = {
           id?: string
           last_calculated_at?: string
           mention_count?: number
+          monthly_change?: number | null
           normalized_name: string
           recent_postings?: number
           sector?: string | null
           skill_name: string
           trend?: string | null
+          weekly_change?: number | null
         }
         Update: {
           company_diversity?: number
@@ -717,11 +757,13 @@ export type Database = {
           id?: string
           last_calculated_at?: string
           mention_count?: number
+          monthly_change?: number | null
           normalized_name?: string
           recent_postings?: number
           sector?: string | null
           skill_name?: string
           trend?: string | null
+          weekly_change?: number | null
         }
         Relationships: []
       }
@@ -794,6 +836,30 @@ export type Database = {
           referred_user_id?: string | null
           referrer_id?: string
           status?: string
+        }
+        Relationships: []
+      }
+      skill_cert_mapping: {
+        Row: {
+          cert_name: string
+          created_at: string
+          id: string
+          relevance_score: number
+          skill_name: string
+        }
+        Insert: {
+          cert_name: string
+          created_at?: string
+          id?: string
+          relevance_score?: number
+          skill_name: string
+        }
+        Update: {
+          cert_name?: string
+          created_at?: string
+          id?: string
+          relevance_score?: number
+          skill_name?: string
         }
         Relationships: []
       }
@@ -885,6 +951,27 @@ export type Database = {
           },
         ]
       }
+      skill_synonyms: {
+        Row: {
+          canonical_name: string
+          created_at: string
+          id: string
+          synonym: string
+        }
+        Insert: {
+          canonical_name: string
+          created_at?: string
+          id?: string
+          synonym: string
+        }
+        Update: {
+          canonical_name?: string
+          created_at?: string
+          id?: string
+          synonym?: string
+        }
+        Relationships: []
+      }
       soft_skill_assessments: {
         Row: {
           assessed_at: string
@@ -955,28 +1042,37 @@ export type Database = {
       }
       student_certifications: {
         Row: {
+          certificate_id: string | null
           certification_id: string | null
           custom_name: string | null
           file_path: string | null
           id: string
+          issued_date: string | null
+          issuer: string | null
           uploaded_at: string
           user_id: string
           verified: boolean | null
         }
         Insert: {
+          certificate_id?: string | null
           certification_id?: string | null
           custom_name?: string | null
           file_path?: string | null
           id?: string
+          issued_date?: string | null
+          issuer?: string | null
           uploaded_at?: string
           user_id: string
           verified?: boolean | null
         }
         Update: {
+          certificate_id?: string | null
           certification_id?: string | null
           custom_name?: string | null
           file_path?: string | null
           id?: string
+          issued_date?: string | null
+          issuer?: string | null
           uploaded_at?: string
           user_id?: string
           verified?: boolean | null

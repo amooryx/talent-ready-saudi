@@ -58,6 +58,7 @@ serve(async (req) => {
       { data: topSkills },
       { data: topCerts },
       { data: roles },
+      { data: certMappings },
     ] = await Promise.all([
       adminClient.from("student_profiles").select("*").eq("user_id", user.id).single(),
       adminClient.from("skill_matrix").select("*").eq("user_id", user.id),
@@ -66,7 +67,14 @@ serve(async (req) => {
       adminClient.from("market_skill_demand").select("*").order("demand_score", { ascending: false }).limit(50),
       adminClient.from("market_cert_demand").select("*").order("demand_score", { ascending: false }).limit(30),
       adminClient.from("market_role_taxonomy").select("*"),
+      adminClient.from("skill_cert_mapping").select("*").order("relevance_score", { ascending: false }),
     ]);
+
+    // Build skill→cert recommendation context
+    const skillCertContext = (certMappings || []).slice(0, 30).map((m: any) =>
+      `${m.skill_name} → ${m.cert_name} (relevance: ${m.relevance_score}%)`
+    ).join(", ");
+
 
     const studentSkills = (skills || []).map((s: any) => s.skill_name).join(", ") || "None";
     const studentCerts = (certs || []).map((c: any) => c.certification_catalog?.name || c.custom_name).filter(Boolean).join(", ") || "None";
@@ -125,7 +133,10 @@ Top Skills in Demand: ${topSkillsSummary || "No data yet"}
 Top Certifications in Demand: ${topCertsSummary || "No data yet"}
 Available Roles: ${(roles || []).map((r: any) => r.role_name).join(", ") || "No data yet"}
 
-Generate a roadmap that prioritizes high-demand skills and certifications with the best ERS return. Be specific to Saudi market. Reference providers like Tuwaiq Academy, Misk, SAFCSP, Coursera, Udemy where relevant.`,
+Skill → Certification Mappings (verified recommendations):
+${skillCertContext || "No mappings yet"}
+
+Generate a roadmap that prioritizes high-demand skills and certifications with the best ERS return. Use the skill→cert mappings to recommend specific certifications for each skill gap. Be specific to Saudi market. Reference providers like Tuwaiq Academy, Misk, SAFCSP, Coursera, Udemy where relevant.`,
             },
           ],
         }),
