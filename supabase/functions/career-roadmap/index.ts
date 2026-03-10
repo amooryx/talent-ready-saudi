@@ -66,7 +66,14 @@ serve(async (req) => {
       adminClient.from("market_skill_demand").select("*").order("demand_score", { ascending: false }).limit(50),
       adminClient.from("market_cert_demand").select("*").order("demand_score", { ascending: false }).limit(30),
       adminClient.from("market_role_taxonomy").select("*"),
+      adminClient.from("skill_cert_mapping").select("*").order("relevance_score", { ascending: false }),
     ]);
+
+    // Build skill→cert recommendation context
+    const skillCertContext = (certMappings || []).slice(0, 30).map((m: any) =>
+      `${m.skill_name} → ${m.cert_name} (relevance: ${m.relevance_score}%)`
+    ).join(", ");
+
 
     const studentSkills = (skills || []).map((s: any) => s.skill_name).join(", ") || "None";
     const studentCerts = (certs || []).map((c: any) => c.certification_catalog?.name || c.custom_name).filter(Boolean).join(", ") || "None";
