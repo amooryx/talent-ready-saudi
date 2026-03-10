@@ -133,7 +133,10 @@ Top Skills in Demand: ${topSkillsSummary || "No data yet"}
 Top Certifications in Demand: ${topCertsSummary || "No data yet"}
 Available Roles: ${(roles || []).map((r: any) => r.role_name).join(", ") || "No data yet"}
 
-Generate a roadmap that prioritizes high-demand skills and certifications with the best ERS return. Be specific to Saudi market. Reference providers like Tuwaiq Academy, Misk, SAFCSP, Coursera, Udemy where relevant.`,
+Skill → Certification Mappings (verified recommendations):
+${skillCertContext || "No mappings yet"}
+
+Generate a roadmap that prioritizes high-demand skills and certifications with the best ERS return. Use the skill→cert mappings to recommend specific certifications for each skill gap. Be specific to Saudi market. Reference providers like Tuwaiq Academy, Misk, SAFCSP, Coursera, Udemy where relevant.`,
             },
           ],
         }),
