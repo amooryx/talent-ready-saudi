@@ -57,6 +57,23 @@ serve(async (req) => {
 
     const refreshId = refreshLog?.id;
 
+    // Fetch skill synonyms for normalization
+    const { data: synonyms } = await admin.from("skill_synonyms").select("synonym, canonical_name");
+    const synonymMap = new Map((synonyms || []).map((s: any) => [s.synonym.toLowerCase(), s.canonical_name]));
+    const normalizeSkill = (skill: string): string => {
+      const lower = skill.toLowerCase().trim();
+      return synonymMap.get(lower) || skill.trim();
+    };
+
+    // Fetch skill-to-cert mappings for enrichment
+    const { data: certMappings } = await admin.from("skill_cert_mapping").select("*");
+    const skillCertMap = new Map<string, any[]>();
+    for (const m of (certMappings || [])) {
+      const key = m.skill_name.toLowerCase();
+      if (!skillCertMap.has(key)) skillCertMap.set(key, []);
+      skillCertMap.get(key)!.push(m);
+    }
+
     // Step 1: Fetch unanalyzed jobs from job_cache
     const { data: jobs } = await admin
       .from("job_cache")
