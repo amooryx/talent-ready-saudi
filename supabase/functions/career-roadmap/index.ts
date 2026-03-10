@@ -58,6 +58,7 @@ serve(async (req) => {
       { data: topSkills },
       { data: topCerts },
       { data: roles },
+      { data: certMappings },
     ] = await Promise.all([
       adminClient.from("student_profiles").select("*").eq("user_id", user.id).single(),
       adminClient.from("skill_matrix").select("*").eq("user_id", user.id),
