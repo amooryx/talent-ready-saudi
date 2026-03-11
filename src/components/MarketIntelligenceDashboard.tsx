@@ -168,9 +168,9 @@ export default function MarketIntelligenceDashboard() {
             <span>24h Auto-Refresh Active</span>
           </div>
           <span className="text-muted-foreground">·</span>
-          <span className="text-muted-foreground">Sources: LinkedIn, Bayt, GulfTalent, Indeed, Jadarat</span>
+          <span className="text-muted-foreground">Sources: LinkedIn, Bayt, GulfTalent, Indeed (via Firecrawl)</span>
           <span className="text-muted-foreground">·</span>
-          <span className="text-muted-foreground">Pipeline: Ingest → Normalize → Analyze → Score → Update ERS</span>
+          <span className="text-muted-foreground">Pipeline: Scrape → Parse → Normalize → Analyze → Score → Update ERS</span>
         </div>
       </div>
 
