@@ -50,7 +50,13 @@ export default function CareerRoadmap({ userId, currentCareerTarget }: CareerRoa
       setMarketSkills(sd || []);
       setMarketCerts(cd || []);
     });
-  }, []);
+
+    // Auto-trigger career fit analysis if student has a career target
+    if (currentCareerTarget && currentCareerTarget.trim()) {
+      setCareerTarget(currentCareerTarget);
+      generateRoadmap(currentCareerTarget);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const generateRoadmap = async (target?: string) => {
     const finalTarget = target || careerTarget;
