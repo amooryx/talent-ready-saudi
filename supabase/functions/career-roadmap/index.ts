@@ -111,11 +111,12 @@ serve(async (req) => {
           messages: [
             {
               role: "system",
-              content: `You are a Saudi career intelligence advisor. Generate a personalized career roadmap using REAL market demand data. Return ONLY valid JSON:
+              content: `You are a Saudi career intelligence advisor. Generate a personalized career roadmap using REAL market demand data. You must also recommend the TOP 3 best-fit career paths for this student based on their profile. Return ONLY valid JSON:
 {
   "career_target": "string",
   "market_demand": "high|medium|low",
   "readiness_score": number (0-100),
+  "top_career_fits": [{"career": "string", "confidence": number (0-100), "reason": "string"}],
   "skill_gaps": [{"skill": "string", "market_demand_score": number, "priority": "critical|important|nice_to_have", "action": "string"}],
   "recommended_certifications": [{"name": "string", "ers_points": number, "difficulty": "string", "market_demand": number, "reason": "string", "provider": "string"}],
   "recommended_projects": [{"title": "string", "description": "string", "skills_gained": ["string"], "estimated_time": "string"}],
