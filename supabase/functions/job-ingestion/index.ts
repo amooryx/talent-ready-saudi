@@ -7,6 +7,14 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+/**
+ * Job Ingestion Pipeline v2
+ * 1. Scrapes real Saudi job postings via Firecrawl (firecrawl-jobs function)
+ * 2. Uses AI to parse and structure scraped content
+ * 3. Normalizes skills via synonym map
+ * 4. Deduplicates against existing job_cache
+ * 5. Falls back to AI-generated jobs if Firecrawl unavailable
+ */
 serve(async (req) => {
   if (req.method === "OPTIONS")
     return new Response(null, { headers: corsHeaders });
@@ -15,6 +23,7 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const lovableApiKey = Deno.env.get("LOVABLE_API_KEY")!;
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const admin = createClient(supabaseUrl, serviceKey, {
       auth: { autoRefreshToken: false, persistSession: false },
     });
@@ -23,10 +32,87 @@ serve(async (req) => {
     const { data: synonyms } = await admin.from("skill_synonyms").select("synonym, canonical_name");
     const synonymMap = new Map((synonyms || []).map((s: any) => [s.synonym.toLowerCase(), s.canonical_name]));
 
-    // Use AI to generate realistic Saudi job postings based on current market
-    // This simulates what real API integrations (LinkedIn, Bayt, etc.) would provide
-    const sources = ["LinkedIn", "Bayt", "GulfTalent", "Indeed", "Jadarat"];
+    // Step 1: Try to scrape real job data via Firecrawl
+    let scrapedContent: any[] = [];
+    let dataSource = "firecrawl";
+
+    try {
+      const firecrawlRes = await fetch(`${supabaseUrl}/functions/v1/firecrawl-jobs`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${anonKey}`,
+        },
+        body: JSON.stringify({}),
+      });
+
+      if (firecrawlRes.ok) {
+        const firecrawlData = await firecrawlRes.json();
+        scrapedContent = firecrawlData.results || [];
+        console.log(`Firecrawl returned ${scrapedContent.length} results`);
+      } else {
+        console.warn("Firecrawl unavailable, falling back to AI generation");
+        dataSource = "ai_generated";
+      }
+    } catch (err) {
+      console.warn("Firecrawl call failed:", err);
+      dataSource = "ai_generated";
+    }
+
+    // Step 2: Use AI to parse scraped content OR generate realistic jobs
     const sectors = ["tech", "engineering", "business", "medical", "creative", "legal", "education"];
+    const sources = ["LinkedIn", "Bayt", "GulfTalent", "Indeed", "Jadarat"];
+
+    let aiPrompt: string;
+    if (scrapedContent.length > 0) {
+      // Parse real scraped data
+      const scrapedSummary = scrapedContent
+        .slice(0, 40) // Limit to avoid token overflow
+        .map((r: any) => `[Source: ${r.source}] ${r.title}\n${(r.markdown || "").slice(0, 500)}`)
+        .join("\n---\n");
+
+      aiPrompt = `You are a Saudi job market data extractor. Parse the following REAL scraped job listings from Saudi job platforms and extract structured job data.
+
+SCRAPED JOB DATA:
+${scrapedSummary}
+
+Extract each distinct job posting. For each job, determine:
+- title: exact job title
+- company: company name  
+- location: city in Saudi Arabia
+- sector: ${sectors.join("|")}|general
+- experience_level: entry|mid|senior
+- required_skills: specific technical/professional skills mentioned (3-8 per job)
+- required_certifications: any certifications mentioned (0-3 per job)
+- source: ${sources.join("|")}|Web (use the source tag from scraped data)
+- salary_range: salary if mentioned, null otherwise
+
+CRITICAL RULES:
+- Only include jobs LOCATED IN Saudi Arabia
+- Extract REAL data from the scraped content, do not fabricate
+- Normalize skill names (e.g. "Python programming" → "Python")
+- If a scraped result is not a job posting, skip it
+- Deduplicate similar postings`;
+    } else {
+      // Fallback: Generate realistic jobs based on current Saudi market
+      aiPrompt = `You are a Saudi job market data simulator. Generate 30 realistic job postings currently available in Saudi Arabia.
+              
+Include jobs from these sources: ${sources.join(", ")}
+Cover these sectors: ${sectors.join(", ")}
+
+Focus on Vision 2030 aligned roles: AI, cybersecurity, cloud, fintech, healthcare, renewable energy, tourism, entertainment.
+
+Include major Saudi employers: Aramco, SABIC, STC, NEOM, Red Sea Global, Lucid Motors, Saudi Airlines, Riyad Bank, Al Rajhi, Ministry of IT, SDAIA, Elm, Thiqah, Tuwaiq Academy, King Faisal Hospital.
+
+Rules:
+- All jobs MUST be in Saudi Arabia
+- Use realistic job titles
+- Include 3-8 required skills per job
+- Include 0-3 certifications per job
+- Mix of entry, mid, and senior roles
+- Vary across cities: Riyadh, Jeddah, Dammam, NEOM, Makkah, Madinah
+- Make skills specific (not generic)`;
+    }
 
     const aiResponse = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
@@ -38,50 +124,15 @@ serve(async (req) => {
         },
         body: JSON.stringify({
           model: "google/gemini-3-flash-preview",
-          temperature: 0.7,
+          temperature: scrapedContent.length > 0 ? 0.1 : 0.7,
           response_format: { type: "json_object" },
           messages: [
-            {
-              role: "system",
-              content: `You are a Saudi job market data simulator. Generate 30 realistic job postings currently available in Saudi Arabia.
-              
-Include jobs from these sources: ${sources.join(", ")}
-Cover these sectors: ${sectors.join(", ")}
-
-Focus on Vision 2030 aligned roles: AI, cybersecurity, cloud, fintech, healthcare, renewable energy, tourism, entertainment, etc.
-
-Include major Saudi employers: Aramco, SABIC, STC, NEOM, Red Sea Global, Lucid Motors, Saudi Airlines, Riyad Bank, Al Rajhi, Ministry of IT, SDAIA, Elm, Thiqah, Tuwaiq Academy, King Faisal Hospital.
-
-Return ONLY valid JSON:
-{
-  "jobs": [
-    {
-      "title": "string",
-      "company": "string",
-      "location": "string (city, Saudi Arabia)",
-      "sector": "tech|engineering|business|medical|creative|legal|education|general",
-      "experience_level": "entry|mid|senior",
-      "required_skills": ["string"],
-      "required_certifications": ["string"],
-      "source": "LinkedIn|Bayt|GulfTalent|Indeed|Jadarat",
-      "salary_range": "string or null"
-    }
-  ]
-}
-
-Rules:
-- All jobs MUST be in Saudi Arabia
-- Use realistic job titles
-- Include 3-8 required skills per job
-- Include 0-3 certifications per job
-- Mix of entry, mid, and senior roles
-- Vary across cities: Riyadh, Jeddah, Dammam, NEOM, Makkah, Madinah
-- Make skills specific (not generic)
-- Each batch should have different jobs than typical listings`,
-            },
+            { role: "system", content: aiPrompt },
             {
               role: "user",
-              content: `Generate 30 fresh Saudi job postings for today (${new Date().toISOString().split("T")[0]}). Make them diverse across sectors and experience levels. Include emerging roles in AI, cybersecurity, cloud, and digital transformation.`,
+              content: scrapedContent.length > 0
+                ? `Parse the scraped job data above into structured JSON. Return ONLY: { "jobs": [{ "title", "company", "location", "sector", "experience_level", "required_skills": [], "required_certifications": [], "source", "salary_range" }] }`
+                : `Generate 30 fresh Saudi job postings for today (${new Date().toISOString().split("T")[0]}). Return ONLY: { "jobs": [{ "title", "company", "location", "sector", "experience_level", "required_skills": [], "required_certifications": [], "source", "salary_range" }] }`,
             },
           ],
         }),
@@ -90,9 +141,9 @@ Rules:
 
     if (!aiResponse.ok) {
       const errText = await aiResponse.text();
-      console.error("AI job generation failed:", errText);
+      console.error("AI job processing failed:", errText);
       return new Response(
-        JSON.stringify({ error: "Job generation failed", detail: errText }),
+        JSON.stringify({ error: "Job processing failed", detail: errText }),
         { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -112,7 +163,7 @@ Rules:
     const jobs = parsed.jobs || [];
     if (jobs.length === 0) {
       return new Response(
-        JSON.stringify({ success: true, ingested: 0, message: "No jobs generated" }),
+        JSON.stringify({ success: true, ingested: 0, message: "No jobs found", data_source: dataSource }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -147,9 +198,14 @@ Rules:
         experience_level: j.experience_level || null,
         required_skills: (j.required_skills || []).map(normalizeSkill),
         required_certifications: j.required_certifications || [],
-        source: j.source || "AI Generated",
+        source: j.source || dataSource,
         source_url: null,
-        raw_data: { salary_range: j.salary_range, ingested_at: new Date().toISOString() },
+        raw_data: {
+          salary_range: j.salary_range,
+          data_source: dataSource,
+          scraped_results: scrapedContent.length,
+          ingested_at: new Date().toISOString(),
+        },
       }));
 
     let ingested = 0;
@@ -171,10 +227,11 @@ Rules:
       action: "job_ingestion_completed",
       resource_type: "job_cache",
       details: {
-        total_generated: jobs.length,
+        data_source: dataSource,
+        scraped_results: scrapedContent.length,
+        total_parsed: jobs.length,
         duplicates_skipped: jobs.length - newJobs.length,
-        ingested: ingested,
-        sources: sources,
+        ingested,
         timestamp: new Date().toISOString(),
       },
     });
@@ -182,7 +239,9 @@ Rules:
     return new Response(
       JSON.stringify({
         success: true,
-        generated: jobs.length,
+        data_source: dataSource,
+        scraped: scrapedContent.length,
+        parsed: jobs.length,
         duplicates_skipped: jobs.length - newJobs.length,
         ingested,
       }),

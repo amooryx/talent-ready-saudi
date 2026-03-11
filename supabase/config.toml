@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.market-refresh-cron]
 verify_jwt = false
+
+[functions.firecrawl-jobs]
+verify_jwt = false

@@ -86,9 +86,10 @@ export default function MarketIntelligenceDashboard() {
     try {
       const { data, error } = await supabase.functions.invoke("job-ingestion");
       if (error) throw error;
+      const source = data.data_source === "firecrawl" ? "🔍 Scraped" : "🤖 AI Generated";
       toast({
         title: "Job Ingestion Complete",
-        description: `Generated ${data.generated} jobs · Ingested ${data.ingested} new · ${data.duplicates_skipped} duplicates skipped`,
+        description: `${source} · Parsed ${data.parsed} jobs · Ingested ${data.ingested} new · ${data.duplicates_skipped} duplicates skipped`,
       });
       await loadData();
     } catch (err: any) {
@@ -167,9 +168,9 @@ export default function MarketIntelligenceDashboard() {
             <span>24h Auto-Refresh Active</span>
           </div>
           <span className="text-muted-foreground">·</span>
-          <span className="text-muted-foreground">Sources: LinkedIn, Bayt, GulfTalent, Indeed, Jadarat</span>
+          <span className="text-muted-foreground">Sources: LinkedIn, Bayt, GulfTalent, Indeed (via Firecrawl)</span>
           <span className="text-muted-foreground">·</span>
-          <span className="text-muted-foreground">Pipeline: Ingest → Normalize → Analyze → Score → Update ERS</span>
+          <span className="text-muted-foreground">Pipeline: Scrape → Parse → Normalize → Analyze → Score → Update ERS</span>
         </div>
       </div>
 
