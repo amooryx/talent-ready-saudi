@@ -73,10 +73,16 @@ serve(async (req) => {
     ]);
 
     // Build skill→cert recommendation context
-    const skillCertContext = (certMappings || []).slice(0, 30).map((m: any) =>
+    const skillCertContext = (certMappings || []).slice(0, 40).map((m: any) =>
       `${m.skill_name} → ${m.cert_name} (relevance: ${m.relevance_score}%)`
     ).join(", ");
 
+    // Build skill ontology hierarchy context
+    const parentSkills = (skillOntology || []).filter((s: any) => !s.parent_skill_id);
+    const ontologyContext = parentSkills.map((p: any) => {
+      const children = (skillOntology || []).filter((c: any) => c.parent_skill_id === p.id);
+      return `${p.skill_name}: ${children.map((c: any) => c.skill_name).join(", ")}`;
+    }).join(" | ");
 
     const studentSkills = (skills || []).map((s: any) => s.skill_name).join(", ") || "None";
     const studentCerts = (certs || []).map((c: any) => c.certification_catalog?.name || c.custom_name).filter(Boolean).join(", ") || "None";
