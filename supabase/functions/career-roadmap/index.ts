@@ -59,6 +59,7 @@ serve(async (req) => {
       { data: topCerts },
       { data: roles },
       { data: certMappings },
+      { data: skillOntology },
     ] = await Promise.all([
       adminClient.from("student_profiles").select("*").eq("user_id", user.id).single(),
       adminClient.from("skill_matrix").select("*").eq("user_id", user.id),
@@ -68,6 +69,7 @@ serve(async (req) => {
       adminClient.from("market_cert_demand").select("*").order("demand_score", { ascending: false }).limit(30),
       adminClient.from("market_role_taxonomy").select("*"),
       adminClient.from("skill_cert_mapping").select("*").order("relevance_score", { ascending: false }),
+      adminClient.from("skill_ontology").select("id, skill_name, skill_category, sector, parent_skill_id").limit(100),
     ]);
 
     // Build skill→cert recommendation context
