@@ -59,6 +59,7 @@ serve(async (req) => {
       { data: topCerts },
       { data: roles },
       { data: certMappings },
+      { data: skillOntology },
     ] = await Promise.all([
       adminClient.from("student_profiles").select("*").eq("user_id", user.id).single(),
       adminClient.from("skill_matrix").select("*").eq("user_id", user.id),
@@ -68,13 +69,20 @@ serve(async (req) => {
       adminClient.from("market_cert_demand").select("*").order("demand_score", { ascending: false }).limit(30),
       adminClient.from("market_role_taxonomy").select("*"),
       adminClient.from("skill_cert_mapping").select("*").order("relevance_score", { ascending: false }),
+      adminClient.from("skill_ontology").select("id, skill_name, skill_category, sector, parent_skill_id").limit(100),
     ]);
 
     // Build skill→cert recommendation context
-    const skillCertContext = (certMappings || []).slice(0, 30).map((m: any) =>
+    const skillCertContext = (certMappings || []).slice(0, 40).map((m: any) =>
       `${m.skill_name} → ${m.cert_name} (relevance: ${m.relevance_score}%)`
     ).join(", ");
 
+    // Build skill ontology hierarchy context
+    const parentSkills = (skillOntology || []).filter((s: any) => !s.parent_skill_id);
+    const ontologyContext = parentSkills.map((p: any) => {
+      const children = (skillOntology || []).filter((c: any) => c.parent_skill_id === p.id);
+      return `${p.skill_name}: ${children.map((c: any) => c.skill_name).join(", ")}`;
+    }).join(" | ");
 
     const studentSkills = (skills || []).map((s: any) => s.skill_name).join(", ") || "None";
     const studentCerts = (certs || []).map((c: any) => c.certification_catalog?.name || c.custom_name).filter(Boolean).join(", ") || "None";
@@ -103,11 +111,12 @@ serve(async (req) => {
           messages: [
             {
               role: "system",
-              content: `You are a Saudi career intelligence advisor. Generate a personalized career roadmap using REAL market demand data. Return ONLY valid JSON:
+              content: `You are a Saudi career intelligence advisor. Generate a personalized career roadmap using REAL market demand data. You must also recommend the TOP 3 best-fit career paths for this student based on their profile. Return ONLY valid JSON:
 {
   "career_target": "string",
   "market_demand": "high|medium|low",
   "readiness_score": number (0-100),
+  "top_career_fits": [{"career": "string", "confidence": number (0-100), "reason": "string"}],
   "skill_gaps": [{"skill": "string", "market_demand_score": number, "priority": "critical|important|nice_to_have", "action": "string"}],
   "recommended_certifications": [{"name": "string", "ers_points": number, "difficulty": "string", "market_demand": number, "reason": "string", "provider": "string"}],
   "recommended_projects": [{"title": "string", "description": "string", "skills_gained": ["string"], "estimated_time": "string"}],
@@ -136,7 +145,10 @@ Available Roles: ${(roles || []).map((r: any) => r.role_name).join(", ") || "No 
 Skill → Certification Mappings (verified recommendations):
 ${skillCertContext || "No mappings yet"}
 
-Generate a roadmap that prioritizes high-demand skills and certifications with the best ERS return. Use the skill→cert mappings to recommend specific certifications for each skill gap. Be specific to Saudi market. Reference providers like Tuwaiq Academy, Misk, SAFCSP, Coursera, Udemy where relevant.`,
+Skill Ontology (domain → sub-skills):
+${ontologyContext || "No ontology yet"}
+
+Generate a roadmap that prioritizes high-demand skills and certifications with the best ERS return. Use the skill→cert mappings to recommend specific certifications for each skill gap. Include top_career_fits with the 3 best career paths for this student based on their profile, skills and market demand. Be specific to Saudi market. Reference providers like Tuwaiq Academy, Misk, SAFCSP, Coursera, Udemy where relevant.`,
             },
           ],
         }),
