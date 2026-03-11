@@ -86,9 +86,10 @@ export default function MarketIntelligenceDashboard() {
     try {
       const { data, error } = await supabase.functions.invoke("job-ingestion");
       if (error) throw error;
+      const source = data.data_source === "firecrawl" ? "🔍 Scraped" : "🤖 AI Generated";
       toast({
         title: "Job Ingestion Complete",
-        description: `Generated ${data.generated} jobs · Ingested ${data.ingested} new · ${data.duplicates_skipped} duplicates skipped`,
+        description: `${source} · Parsed ${data.parsed} jobs · Ingested ${data.ingested} new · ${data.duplicates_skipped} duplicates skipped`,
       });
       await loadData();
     } catch (err: any) {
