@@ -139,6 +139,26 @@ export default function CareerRoadmap({ userId, currentCareerTarget }: CareerRoa
       {/* Roadmap Results */}
       {roadmap && !roadmap.parse_error && (
         <motion.div className="space-y-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+          {/* Top Career Fits */}
+          {roadmap.top_career_fits && roadmap.top_career_fits.length > 0 && (
+            <div className="rounded-xl border bg-card p-6">
+              <h4 className="font-semibold font-heading mb-4 flex items-center gap-2">
+                <Briefcase className="h-4 w-4 text-primary" />
+                Top 3 Career Fits for You
+              </h4>
+              <div className="grid md:grid-cols-3 gap-3">
+                {roadmap.top_career_fits.map((fit: any, i: number) => (
+                  <motion.div key={i} className="rounded-lg border p-4 text-center"
+                    initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.1 }}>
+                    <p className="text-2xl font-bold text-primary">{fit.confidence}%</p>
+                    <p className="text-sm font-semibold mt-1">{fit.career}</p>
+                    <p className="text-xs text-muted-foreground mt-2">{fit.reason}</p>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Readiness Overview */}
           <div className="grid md:grid-cols-3 gap-4">
             <div className="rounded-xl border bg-card p-6 text-center">

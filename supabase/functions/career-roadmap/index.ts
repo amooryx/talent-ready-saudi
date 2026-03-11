@@ -145,7 +145,10 @@ Available Roles: ${(roles || []).map((r: any) => r.role_name).join(", ") || "No 
 Skill → Certification Mappings (verified recommendations):
 ${skillCertContext || "No mappings yet"}
 
-Generate a roadmap that prioritizes high-demand skills and certifications with the best ERS return. Use the skill→cert mappings to recommend specific certifications for each skill gap. Be specific to Saudi market. Reference providers like Tuwaiq Academy, Misk, SAFCSP, Coursera, Udemy where relevant.`,
+Skill Ontology (domain → sub-skills):
+${ontologyContext || "No ontology yet"}
+
+Generate a roadmap that prioritizes high-demand skills and certifications with the best ERS return. Use the skill→cert mappings to recommend specific certifications for each skill gap. Include top_career_fits with the 3 best career paths for this student based on their profile, skills and market demand. Be specific to Saudi market. Reference providers like Tuwaiq Academy, Misk, SAFCSP, Coursera, Udemy where relevant.`,
             },
           ],
         }),
