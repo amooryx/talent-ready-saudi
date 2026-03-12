@@ -692,6 +692,60 @@ export type Database = {
         }
         Relationships: []
       }
+      market_role_demand: {
+        Row: {
+          company_diversity: number
+          created_at: string
+          demand_score: number
+          id: string
+          job_count: number
+          last_calculated_at: string
+          market_stability: string | null
+          match_companies: string[] | null
+          monthly_change: number | null
+          role_category: string
+          role_name: string
+          salary_range: string | null
+          top_certifications: string[] | null
+          top_required_skills: string[] | null
+          weekly_change: number | null
+        }
+        Insert: {
+          company_diversity?: number
+          created_at?: string
+          demand_score?: number
+          id?: string
+          job_count?: number
+          last_calculated_at?: string
+          market_stability?: string | null
+          match_companies?: string[] | null
+          monthly_change?: number | null
+          role_category?: string
+          role_name: string
+          salary_range?: string | null
+          top_certifications?: string[] | null
+          top_required_skills?: string[] | null
+          weekly_change?: number | null
+        }
+        Update: {
+          company_diversity?: number
+          created_at?: string
+          demand_score?: number
+          id?: string
+          job_count?: number
+          last_calculated_at?: string
+          market_stability?: string | null
+          match_companies?: string[] | null
+          monthly_change?: number | null
+          role_category?: string
+          role_name?: string
+          salary_range?: string | null
+          top_certifications?: string[] | null
+          top_required_skills?: string[] | null
+          weekly_change?: number | null
+        }
+        Relationships: []
+      }
       market_role_taxonomy: {
         Row: {
           aliases: string[] | null
