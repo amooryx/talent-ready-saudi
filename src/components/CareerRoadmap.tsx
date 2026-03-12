@@ -1,17 +1,16 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { untypedTable } from "@/lib/untypedTable";
 import { useToast } from "@/hooks/use-toast";
 import {
-  Map, Target, Award, Star, Briefcase, CheckCircle, Circle,
-  ArrowRight, Loader2, TrendingUp, AlertTriangle, Rocket,
-  BookOpen, Code, ChevronRight
+  Map, Target, Award, Star, Briefcase, TrendingUp, TrendingDown,
+  ArrowRight, Loader2, AlertTriangle, Rocket, Minus,
+  Code, ChevronRight, BarChart3, Building2, DollarSign
 } from "lucide-react";
 
 interface CareerRoadmapProps {
@@ -20,25 +19,37 @@ interface CareerRoadmapProps {
 }
 
 const POPULAR_CAREERS = [
-  "Software Engineer",
-  "Cloud Engineer",
-  "Penetration Tester",
-  "Data Analyst",
-  "AI Engineer",
-  "SOC Analyst",
-  "DevOps Engineer",
-  "Cybersecurity Analyst",
-  "Full Stack Developer",
-  "Business Analyst",
-  "Network Engineer",
-  "UI/UX Designer",
+  "Software Engineer", "Cloud Engineer", "Penetration Tester",
+  "Data Analyst", "AI Engineer", "SOC Analyst", "DevOps Engineer",
+  "Cybersecurity Analyst", "Full Stack Developer", "Business Analyst",
+  "Network Engineer", "UI/UX Designer",
 ];
+
+function TrendIcon({ value }: { value: number }) {
+  if (value > 2) return <TrendingUp className="h-3 w-3 text-[hsl(var(--success))]" />;
+  if (value < -2) return <TrendingDown className="h-3 w-3 text-destructive" />;
+  return <Minus className="h-3 w-3 text-muted-foreground" />;
+}
+
+function StabilityBadge({ stability }: { stability: string }) {
+  const colors: Record<string, string> = {
+    high_growth: "bg-[hsl(var(--success))]/10 text-[hsl(var(--success))]",
+    stable: "bg-[hsl(var(--gold))]/10 text-[hsl(var(--gold))]",
+    declining: "bg-destructive/10 text-destructive",
+  };
+  return (
+    <Badge className={`text-[10px] ${colors[stability] || colors.stable}`}>
+      {(stability || "stable").replace("_", " ")}
+    </Badge>
+  );
+}
 
 export default function CareerRoadmap({ userId, currentCareerTarget }: CareerRoadmapProps) {
   const { toast } = useToast();
   const [careerTarget, setCareerTarget] = useState(currentCareerTarget || "");
   const [loading, setLoading] = useState(false);
   const [roadmap, setRoadmap] = useState<any>(null);
+  const [jobsAnalyzed, setJobsAnalyzed] = useState(0);
   const [marketSkills, setMarketSkills] = useState<any[]>([]);
   const [marketCerts, setMarketCerts] = useState<any[]>([]);
 
@@ -51,8 +62,7 @@ export default function CareerRoadmap({ userId, currentCareerTarget }: CareerRoa
       setMarketCerts(cd || []);
     });
 
-    // Auto-trigger career fit analysis if student has a career target
-    if (currentCareerTarget && currentCareerTarget.trim()) {
+    if (currentCareerTarget?.trim()) {
       setCareerTarget(currentCareerTarget);
       generateRoadmap(currentCareerTarget);
     }
@@ -75,6 +85,7 @@ export default function CareerRoadmap({ userId, currentCareerTarget }: CareerRoa
       if (error) throw error;
       if (data?.roadmap) {
         setRoadmap(data.roadmap);
+        setJobsAnalyzed(data.jobs_analyzed || 0);
       } else {
         throw new Error("No roadmap generated");
       }
@@ -85,16 +96,24 @@ export default function CareerRoadmap({ userId, currentCareerTarget }: CareerRoa
     }
   };
 
+  // Group skill gaps by priority
+  const groupedGaps = roadmap?.skill_gaps?.reduce((acc: any, gap: any) => {
+    const p = gap.priority || "optional";
+    if (!acc[p]) acc[p] = [];
+    acc[p].push(gap);
+    return acc;
+  }, {} as Record<string, any[]>);
+
   return (
     <div className="space-y-6">
       {/* Career Target Selector */}
       <div className="rounded-xl border bg-card p-6">
         <h3 className="text-lg font-semibold font-heading mb-2 flex items-center gap-2">
           <Target className="h-5 w-5 text-primary" />
-          AI Career Roadmap Generator
+          AI Career Intelligence Engine
         </h3>
         <p className="text-sm text-muted-foreground mb-4">
-          Select or enter your target career. Our AI analyzes real Saudi job market data to create your personalized roadmap.
+          Analyzes 100+ real Saudi job postings to match your profile against live market demand.
         </p>
 
         <div className="flex gap-2 mb-4">
@@ -113,46 +132,88 @@ export default function CareerRoadmap({ userId, currentCareerTarget }: CareerRoa
 
         <div className="flex flex-wrap gap-2">
           {POPULAR_CAREERS.map((career) => (
-            <Button
-              key={career}
-              variant={careerTarget === career ? "default" : "outline"}
-              size="sm"
-              className="text-xs"
-              onClick={() => generateRoadmap(career)}
-              disabled={loading}
-            >
+            <Button key={career} variant={careerTarget === career ? "default" : "outline"} size="sm" className="text-xs"
+              onClick={() => generateRoadmap(career)} disabled={loading}>
               {career}
             </Button>
           ))}
         </div>
       </div>
 
-      {/* Loading State */}
+      {/* Loading */}
       {loading && (
         <div className="rounded-xl border bg-card p-8 text-center">
           <Loader2 className="h-8 w-8 mx-auto text-primary animate-spin mb-3" />
-          <p className="text-sm text-muted-foreground">Analyzing Saudi market demand for "{careerTarget}"...</p>
-          <p className="text-xs text-muted-foreground mt-1">Cross-referencing your profile with real job postings</p>
+          <p className="text-sm text-muted-foreground">Analyzing 100+ Saudi job postings for "{careerTarget}"...</p>
+          <p className="text-xs text-muted-foreground mt-1">Clustering roles → Computing demand → Matching profile</p>
         </div>
       )}
 
-      {/* Roadmap Results */}
+      {/* Results */}
       {roadmap && !roadmap.parse_error && (
         <motion.div className="space-y-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          {/* Top Career Fits */}
-          {roadmap.top_career_fits && roadmap.top_career_fits.length > 0 && (
+
+          {/* Jobs Analyzed Banner */}
+          <div className="rounded-lg border bg-primary/5 p-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4 text-primary" />
+              <span className="text-sm font-medium">Based on {roadmap.jobs_analyzed || jobsAnalyzed} real job postings</span>
+            </div>
+            <Badge variant="outline" className="text-xs">Live Market Data</Badge>
+          </div>
+
+          {/* Top 10 Career Matches */}
+          {roadmap.top_career_matches && roadmap.top_career_matches.length > 0 && (
             <div className="rounded-xl border bg-card p-6">
               <h4 className="font-semibold font-heading mb-4 flex items-center gap-2">
                 <Briefcase className="h-4 w-4 text-primary" />
-                Top 3 Career Fits for You
+                Top 10 Career Matches
               </h4>
-              <div className="grid md:grid-cols-3 gap-3">
-                {roadmap.top_career_fits.map((fit: any, i: number) => (
-                  <motion.div key={i} className="rounded-lg border p-4 text-center"
-                    initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.1 }}>
-                    <p className="text-2xl font-bold text-primary">{fit.confidence}%</p>
-                    <p className="text-sm font-semibold mt-1">{fit.career}</p>
-                    <p className="text-xs text-muted-foreground mt-2">{fit.reason}</p>
+              <div className="space-y-3">
+                {roadmap.top_career_matches.slice(0, 10).map((match: any, i: number) => (
+                  <motion.div key={i} className="rounded-lg border p-4"
+                    initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-sm font-bold text-primary">#{match.rank || i + 1}</span>
+                          <span className="text-sm font-semibold truncate">{match.career}</span>
+                          <StabilityBadge stability={match.market_stability} />
+                        </div>
+                        <p className="text-xs text-muted-foreground">{match.reason}</p>
+                        <div className="flex flex-wrap items-center gap-2 mt-2">
+                          <div className="flex items-center gap-1">
+                            <Building2 className="h-3 w-3 text-muted-foreground" />
+                            <span className="text-[10px] text-muted-foreground">{match.job_count} jobs</span>
+                          </div>
+                          {match.salary_range && (
+                            <div className="flex items-center gap-1">
+                              <DollarSign className="h-3 w-3 text-muted-foreground" />
+                              <span className="text-[10px] text-muted-foreground">{match.salary_range}</span>
+                            </div>
+                          )}
+                          <div className="flex items-center gap-1">
+                            <TrendIcon value={match.weekly_change || 0} />
+                            <span className="text-[10px] text-muted-foreground">{match.weekly_change > 0 ? "+" : ""}{match.weekly_change || 0}% weekly</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <TrendIcon value={match.monthly_change || 0} />
+                            <span className="text-[10px] text-muted-foreground">{match.monthly_change > 0 ? "+" : ""}{match.monthly_change || 0}% monthly</span>
+                          </div>
+                        </div>
+                        {match.companies_hiring?.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {match.companies_hiring.slice(0, 4).map((c: string) => (
+                              <Badge key={c} variant="secondary" className="text-[10px]">{c}</Badge>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-2xl font-bold text-primary">{match.match_score}%</p>
+                        <p className="text-[10px] text-muted-foreground">match</p>
+                      </div>
+                    </div>
                   </motion.div>
                 ))}
               </div>
@@ -182,41 +243,59 @@ export default function CareerRoadmap({ userId, currentCareerTarget }: CareerRoa
             </div>
           </div>
 
-          {/* Skill Gaps */}
-          {roadmap.skill_gaps && roadmap.skill_gaps.length > 0 && (
+          {/* Skill Gaps by Priority */}
+          {groupedGaps && Object.keys(groupedGaps).length > 0 && (
             <div className="rounded-xl border bg-card p-6">
               <h4 className="font-semibold font-heading mb-4 flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4 text-destructive" />
-                Skill Gaps to Address
+                Skill Gap Analysis
               </h4>
-              <div className="space-y-2">
-                {roadmap.skill_gaps.map((gap: any, i: number) => (
-                  <motion.div key={i} className="flex items-center gap-3 rounded-lg border p-3"
-                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.05 }}>
-                    <Badge variant={
-                      gap.priority === "critical" ? "destructive" :
-                      gap.priority === "important" ? "default" : "secondary"
-                    } className="text-[10px] shrink-0">
-                      {gap.priority}
-                    </Badge>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium">{gap.skill}</p>
-                      <p className="text-xs text-muted-foreground">{gap.action}</p>
-                    </div>
-                    {gap.market_demand_score > 0 && (
-                      <Badge variant="outline" className="text-[10px] shrink-0">
-                        <TrendingUp className="h-3 w-3 mr-1" />
-                        {gap.market_demand_score}
+              {(["critical", "important", "optional"] as const).map((priority) => {
+                const gaps = groupedGaps[priority];
+                if (!gaps?.length) return null;
+                return (
+                  <div key={priority} className="mb-4 last:mb-0">
+                    <h5 className="text-xs font-semibold uppercase tracking-wider mb-2 flex items-center gap-1">
+                      <Badge variant={priority === "critical" ? "destructive" : priority === "important" ? "default" : "secondary"} className="text-[10px]">
+                        {priority}
                       </Badge>
-                    )}
-                  </motion.div>
-                ))}
-              </div>
+                      <span className="text-muted-foreground">({gaps.length} skills)</span>
+                    </h5>
+                    <div className="space-y-2">
+                      {gaps.map((gap: any, i: number) => (
+                        <motion.div key={i} className="flex items-center gap-3 rounded-lg border p-3"
+                          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }}>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm font-medium">{gap.skill}</p>
+                              {gap.domain && <span className="text-[10px] text-muted-foreground">({gap.domain})</span>}
+                            </div>
+                            <p className="text-xs text-muted-foreground">{gap.action}</p>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            {(gap.weekly_trend !== undefined || gap.monthly_trend !== undefined) && (
+                              <div className="flex items-center gap-1">
+                                <TrendIcon value={gap.weekly_trend || gap.monthly_trend || 0} />
+                              </div>
+                            )}
+                            {gap.market_demand_score > 0 && (
+                              <Badge variant="outline" className="text-[10px]">
+                                <TrendingUp className="h-3 w-3 mr-1" />
+                                {gap.market_demand_score}
+                              </Badge>
+                            )}
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
 
           {/* Recommended Certifications */}
-          {roadmap.recommended_certifications && roadmap.recommended_certifications.length > 0 && (
+          {roadmap.recommended_certifications?.length > 0 && (
             <div className="rounded-xl border bg-card p-6">
               <h4 className="font-semibold font-heading mb-4 flex items-center gap-2">
                 <Award className="h-4 w-4 text-primary" />
@@ -247,7 +326,7 @@ export default function CareerRoadmap({ userId, currentCareerTarget }: CareerRoa
           )}
 
           {/* Recommended Projects */}
-          {roadmap.recommended_projects && roadmap.recommended_projects.length > 0 && (
+          {roadmap.recommended_projects?.length > 0 && (
             <div className="rounded-xl border bg-card p-6">
               <h4 className="font-semibold font-heading mb-4 flex items-center gap-2">
                 <Code className="h-4 w-4 text-primary" />
@@ -274,7 +353,7 @@ export default function CareerRoadmap({ userId, currentCareerTarget }: CareerRoa
           )}
 
           {/* Step-by-Step Roadmap */}
-          {roadmap.roadmap_steps && roadmap.roadmap_steps.length > 0 && (
+          {roadmap.roadmap_steps?.length > 0 && (
             <div className="rounded-xl border bg-card p-6">
               <h4 className="font-semibold font-heading mb-4 flex items-center gap-2">
                 <Map className="h-4 w-4 text-primary" />
@@ -306,8 +385,8 @@ export default function CareerRoadmap({ userId, currentCareerTarget }: CareerRoa
             </div>
           )}
 
-          {/* Vision 2030 Alignment */}
-          {roadmap.vision_2030_alignment && roadmap.vision_2030_alignment.length > 0 && (
+          {/* Vision 2030 */}
+          {roadmap.vision_2030_alignment?.length > 0 && (
             <div className="rounded-xl border bg-card p-6">
               <h4 className="font-semibold font-heading mb-3">🇸🇦 Vision 2030 Alignment</h4>
               <div className="flex flex-wrap gap-2">
@@ -320,7 +399,7 @@ export default function CareerRoadmap({ userId, currentCareerTarget }: CareerRoa
         </motion.div>
       )}
 
-      {/* Market Snapshot (when no roadmap) */}
+      {/* Market Snapshot (no roadmap) */}
       {!roadmap && !loading && (marketSkills.length > 0 || marketCerts.length > 0) && (
         <div className="grid md:grid-cols-2 gap-6">
           <div className="rounded-xl border bg-card p-6">
@@ -329,7 +408,7 @@ export default function CareerRoadmap({ userId, currentCareerTarget }: CareerRoa
               Trending Skills in Saudi Market
             </h4>
             <div className="space-y-1">
-              {marketSkills.slice(0, 10).map((s, i) => (
+              {marketSkills.slice(0, 10).map((s) => (
                 <div key={s.id} className="flex items-center justify-between text-sm py-1">
                   <span className="truncate">{s.skill_name}</span>
                   <Badge variant="outline" className="text-[10px] shrink-0">{Math.round(s.demand_score)}</Badge>
@@ -343,7 +422,7 @@ export default function CareerRoadmap({ userId, currentCareerTarget }: CareerRoa
               Top Certifications by ERS Value
             </h4>
             <div className="space-y-1">
-              {marketCerts.slice(0, 10).map((c, i) => (
+              {marketCerts.slice(0, 10).map((c) => (
                 <div key={c.id} className="flex items-center justify-between text-sm py-1">
                   <span className="truncate">{c.cert_name}</span>
                   <span className="text-xs font-semibold text-primary shrink-0">{c.ers_points} pts</span>
